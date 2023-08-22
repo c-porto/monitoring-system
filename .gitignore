@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Latex stuff
+*.aux
+*.log 
