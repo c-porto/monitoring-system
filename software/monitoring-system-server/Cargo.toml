@@ -1,0 +1,15 @@
+[package]
+name = "monitoring-system-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.32.0", features = ["full"] }
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls" ] }
+serde = "1.0.188"
+serde_json = "1.0.107"
+anyhow = "1.0.75"
+axum = "0.6.20"
+
