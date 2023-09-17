@@ -18,7 +18,7 @@ pub struct MeasurementSample {
 }
 
 #[derive(Serialize, Debug)]
-#[serde()]
+#[serde(transparent)]
 pub struct MeasurementsData {
     dataset: Vec<MeasurementSample>,
 }
