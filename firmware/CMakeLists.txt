@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(EXTRA_COMPONENT_DIRS tasks devices)
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-set(COMPONENTS main)
 project(monitoring-system)

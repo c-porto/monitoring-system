@@ -1,2 +1,2 @@
-idf_component_register(SRCS "main.cpp" "drivers/i2c.cpp" "devices/display.cpp"
+idf_component_register(SRCS "main.cpp" 
                     INCLUDE_DIRS ".")

@@ -11,6 +11,7 @@
 #include <thread>
 #include "esp_log.h"
 #include "gpio_cxx.hpp"
+#include <../devices/dht11/include/dht11.hpp>
 
 using namespace idf;
 using namespace std;
@@ -19,6 +20,7 @@ extern "C" void app_main(void)
 {
     /* The functions of GPIO_Output throws exceptions in case of parameter errors or if there are underlying driver
        errors. */
+    auto A = new Dht11(10);
     try {
         /* This line may throw an exception if the pin number is invalid.
          * Alternatively to 4, choose another output-capable pin. */
