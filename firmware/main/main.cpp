@@ -20,7 +20,6 @@ extern "C" void app_main(void)
 {
     /* The functions of GPIO_Output throws exceptions in case of parameter errors or if there are underlying driver
        errors. */
-    auto A = new Dht11(10);
     try {
         /* This line may throw an exception if the pin number is invalid.
          * Alternatively to 4, choose another output-capable pin. */
