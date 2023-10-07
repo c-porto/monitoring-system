@@ -19,7 +19,7 @@
 #define RESPONSE_TIME_US 80U
 #define DATA_BEGIN_TIME_US 50U
 #define MAX_LOW_BIT_TIME_US 28U
-#define MAX_HIGH_BIT_TIME_US 70U
+#define MAX_HIGH_BIT_TIME_US 80U
 
 typedef enum
 {
