@@ -2,9 +2,8 @@
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
-#include <dht11.hpp>
 
-extern QueueSetHandle_t xQueueTH_Handle;
+extern QueueHandle_t xQueueTH_Handle;
 TaskHandle_t xTaskDhtHandle;
 StackType_t XTaskDhtStackStack[TASK_DHT_STACK_SIZE];
 
