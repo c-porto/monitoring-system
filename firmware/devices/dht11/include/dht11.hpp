@@ -8,6 +8,7 @@
 #include <gpio_cxx.hpp>
 #include <memory>
 #include <sys/_stdint.h>
+#include "../../utils/include/utils.hpp"
 
 #define NUMBER_OF_BITS 40U
 #define MAX_TEMP 50U
@@ -59,7 +60,7 @@ struct dht_reading
 using TH_SampleP = std::unique_ptr<dht_reading>;
 using TH_Sample = dht_reading;
 
-class Dht11
+class Dht11: public sensor::Sensor
 {
     dht_data raw_data_;
     idf::GPIONum pin;

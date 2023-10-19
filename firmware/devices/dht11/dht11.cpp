@@ -64,6 +64,7 @@ dht_reading::dht_reading(double T, double Hm) : temp{T}, humidity{Hm}
 
 Dht11::Dht11(uint32_t dht_pin) : pin(dht_pin)
 {
+    id{sensor::DHT11_ID};
     dht_init(this->pin);
 }
 
