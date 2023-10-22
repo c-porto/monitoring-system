@@ -8,26 +8,28 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 
-namespace
-{
+/* Equivalent to static globals*/
+namespace {
+/* Global measurement variable*/
 sensor::MeasureP ms{};
-}
+} // namespace
 
+/* Global mutex to protect ms variable*/
 SemaphoreHandle_t mutex;
 
-void create_tasks()
-{
-    xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms, TASK_DHT_PRIORITY, &xTaskDhtHandle,
-                            TASK_DHT_CORE);
-    xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE, &ms, TASK_LINUX_PRIORITY,
-                            &xTaskLinuxHandle, TASK_LINUX_CORE);
+/* Creates all tasks*/
+void create_tasks() {
+  /* Creating Dht11 sensor task*/
+  xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms,
+                          TASK_DHT_PRIORITY, &xTaskDhtHandle, TASK_DHT_CORE);
+  /* Creating Linux communication task*/
+  xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE,
+                          &ms, TASK_LINUX_PRIORITY, &xTaskLinuxHandle,
+                          TASK_LINUX_CORE);
 }
 
-void create_event_groups()
-{
-}
+/* Creates all event_groups*/
+void create_event_groups() {}
 
-void create_mutex()
-{
-    mutex = xSemaphoreCreateMutex();
-}
+/* Creates mutexes*/
+void create_mutex() { mutex = xSemaphoreCreateMutex(); }

@@ -15,12 +15,11 @@
 #include <cstdlib>
 #include <thread>
 
-using namespace idf;
-using namespace std;
-
-extern "C" void app_main(void)
-{
-    create_mutex();
-    create_event_groups();
-    create_tasks();
+extern "C" void app_main(void) {
+  /* Creates mutexes*/
+  create_mutex();
+  /* Creates event groups*/
+  create_event_groups();
+  /* Creates tasks */
+  create_tasks();
 }

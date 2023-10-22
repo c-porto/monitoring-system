@@ -16,7 +16,6 @@
 #define TASK_DHT_INIT_TIMEOUT_MS 2400
 
 extern TaskHandle_t xTaskDhtHandle;
-extern StackType_t XTaskDhtStackStack[TASK_DHT_STACK_SIZE];
 extern SemaphoreHandle_t mutex;
 
 void vTaskDht(void *params);
