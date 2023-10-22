@@ -1,7 +1,7 @@
 #pragma once
 #include "freertos/FreeRTOS.h"
-#include <freertos/task.h>
 #include <freertos/semphr.h>
+#include <freertos/task.h>
 
 #define TASK_LINUX_NAME "TaskLinuxCommunication"
 #define TASK_LINUX_STACK_SIZE 2048

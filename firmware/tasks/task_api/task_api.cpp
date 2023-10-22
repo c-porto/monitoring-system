@@ -8,20 +8,26 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 
-namespace {
+namespace
+{
 sensor::MeasureP ms{};
 }
 
 SemaphoreHandle_t mutex;
 
-void create_tasks() {
-  xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms,
-                          TASK_DHT_PRIORITY, &xTaskDhtHandle, TASK_DHT_CORE);
-  xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE,
-                          &ms, TASK_LINUX_PRIORITY, &xTaskLinuxHandle,
-                          TASK_LINUX_CORE);
+void create_tasks()
+{
+    xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms, TASK_DHT_PRIORITY, &xTaskDhtHandle,
+                            TASK_DHT_CORE);
+    xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE, &ms, TASK_LINUX_PRIORITY,
+                            &xTaskLinuxHandle, TASK_LINUX_CORE);
 }
 
-void create_event_groups() {}
+void create_event_groups()
+{
+}
 
-void create_mutex() { mutex = xSemaphoreCreateMutex(); }
+void create_mutex()
+{
+    mutex = xSemaphoreCreateMutex();
+}

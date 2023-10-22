@@ -18,8 +18,9 @@
 using namespace idf;
 using namespace std;
 
-extern "C" void app_main(void) {
+extern "C" void app_main(void)
+{
     create_mutex();
     create_event_groups();
-    create_tasks(); 
+    create_tasks();
 }

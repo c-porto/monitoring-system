@@ -4,11 +4,11 @@
 #include "freertos/portmacro.h"
 #include "freertos/task.h"
 
+#include "../../utils/include/utils.hpp"
 #include "esp_log.h"
 #include <gpio_cxx.hpp>
 #include <memory>
 #include <sys/_stdint.h>
-#include "../../utils/include/utils.hpp"
 
 #define NUMBER_OF_BITS 40U
 #define MAX_TEMP 50U
@@ -57,15 +57,15 @@ struct dht_reading
     dht_reading(double T, double Hm);
 };
 
-class Dht11: public sensor::Sensor
+class Dht11 : public sensor::Sensor
 {
   public:
     void read(sensor::MeasureP ms) override;
     Dht11(uint32_t dht_pin);
+
   private:
     dht_data raw_data_;
     idf::GPIONum pin;
     dht_err is_valid_data() const;
     void init_comm();
-
 };
