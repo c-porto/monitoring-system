@@ -6,3 +6,4 @@ extern TaskHandle_t xTaskDhtHandle;
 
 void create_tasks();
 void create_event_groups();
+void create_mutex();

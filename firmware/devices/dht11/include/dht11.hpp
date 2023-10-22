@@ -57,17 +57,15 @@ struct dht_reading
     dht_reading(double T, double Hm);
 };
 
-using TH_SampleP = std::unique_ptr<dht_reading>;
-using TH_Sample = dht_reading;
-
 class Dht11: public sensor::Sensor
 {
+  public:
+    void read(sensor::MeasureP ms) override;
+    Dht11(uint32_t dht_pin);
+  private:
     dht_data raw_data_;
     idf::GPIONum pin;
     dht_err is_valid_data() const;
     void init_comm();
 
-  public:
-    TH_SampleP read();
-    Dht11(uint32_t dht_pin);
 };

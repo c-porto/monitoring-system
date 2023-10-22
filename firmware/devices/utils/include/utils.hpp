@@ -1,4 +1,11 @@
+#pragma once
 #include <chrono>
+#include <ostream>
+
+typedef double temperature_t;
+typedef double humidity_t;
+typedef double light_t;
+typedef double air_quality_t;
 
 namespace sensor {
 typedef enum {
@@ -7,12 +14,37 @@ typedef enum {
   CJMCU811_ID,
 } sensor_id;
 
+struct Measure {
+  bool invidual{false};  
+  bool err{false};
+  sensor_id last_id{};
+  temperature_t temp{};
+  humidity_t hm{};
+  light_t uv{};
+  air_quality_t air{};
+  friend std::ostream &operator<<(std::ostream &os, Measure const &ms);
+};
+
+using MeasureP = Measure *;
+
 class Sensor {
 public:
   sensor_id id;
-  virtual void read() = 0;
-  virtual void init() = 0;
+  virtual void read(MeasureP data) = 0;
 };
+
+using SensorP = Sensor *;
+
+class SensorAPI {
+public:
+  SensorAPI(SensorP sensor, MeasureP data);
+  void update_data();
+
+private:
+  SensorP sensor_{nullptr};
+  MeasureP data_{nullptr};
+};
+
 } // namespace sensor
 
 namespace ds {
@@ -65,12 +97,14 @@ template <typename Tp> Tp Queue<Tp>::peek() { return head_->value; }
 
 } // namespace ds
 
-namespace log {
-template <typename Tp> struct LogData {
+namespace logs {
+struct LogData {
   sensor::sensor_id id;
   std::chrono::year_month_day date;
-  Tp measure;
-  LogData(sensor::sensor_id ID, std::chrono::year_month_day data, Tp sample)
+  sensor::MeasureP measure;
+  LogData(sensor::sensor_id ID, std::chrono::year_month_day data,
+          sensor::MeasureP sample)
       : id{ID}, date{data}, measure{sample} {};
+  friend std::ostream &operator<<(std::ostream &os, LogData const &log);
 };
 } // namespace log

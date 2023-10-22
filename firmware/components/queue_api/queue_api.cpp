@@ -3,4 +3,4 @@
 
 QueueHandle_t xQueueTH_Handle;
 
-void create_queues() { xQueueTH_Handle = xQueueCreate(1U, sizeof(TH_Sample)); }
+//void create_queues() { xQueueTH_Handle = xQueueCreate(1U, sizeof(TH_Sample)); }
