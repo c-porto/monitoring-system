@@ -8,6 +8,10 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 
+
+#define EMBEDDED_CPP 1
+#define ELETRONIC_PROJECT 1
+
 /* Equivalent to static globals*/
 namespace {
 /* Global measurement variable*/
@@ -23,9 +27,11 @@ void create_tasks() {
   xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms,
                           TASK_DHT_PRIORITY, &xTaskDhtHandle, TASK_DHT_CORE);
   /* Creating Linux communication task*/
+#if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
   xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE,
                           &ms, TASK_LINUX_PRIORITY, &xTaskLinuxHandle,
                           TASK_LINUX_CORE);
+#endif // For embedded c++ project
 }
 
 /* Creates all event_groups*/
@@ -33,3 +39,6 @@ void create_event_groups() {}
 
 /* Creates mutexes*/
 void create_mutex() { mutex = xSemaphoreCreateMutex(); }
+
+/* Creates counting semaphores*/
+void create_semphr() {}

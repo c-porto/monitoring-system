@@ -9,7 +9,7 @@
 /* Task handle */
 TaskHandle_t xTaskLinuxHandle;
 
-/* Simply to remind the handler map variable declared in utils.hpp*/
+/* Simply to remind of the handler map variable declared in utils.hpp*/
 extern const std::unordered_map<sensor::sensor_id, log_handler> log_conversion;
 
 /* Equivalent to static global variables */
@@ -45,7 +45,7 @@ void vTaskLinux(void *params) {
       /* Mutex unlock */
       xSemaphoreGive(mutex);
       /* Checking reading error */
-      if (!sample.err) {
+      if (sample) {
 
         /* Getting correct iterator from log handler map*/
         auto sensor_log{log_conversion.find(sample.last_id)};
@@ -57,6 +57,8 @@ void vTaskLinux(void *params) {
         ESP_LOGI(TAG, "Error in measuring some data");
       }
       /* UART STUFF */
+      /*while(fila){data transmit}
+       * */
       /* Maybe some interrupt controled communication */
     } else /* If mutex lock failes log error */
     {

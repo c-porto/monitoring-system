@@ -24,12 +24,13 @@ typedef enum {
 struct Measure {
   std::chrono::year_month_day last_time_measure;
   bool err{false};
-  sensor_id last_id{};
-  temperature_t temp{};
-  humidity_t hm{};
-  light_t uv{};
-  air_quality_t air{};
+  sensor_id last_id;
+  temperature_t temp;
+  humidity_t hm;
+  light_t uv;
+  air_quality_t air;
   friend std::ostream &operator<<(std::ostream &os, Measure const &ms);
+  operator bool() const noexcept { return err; }
 };
 
 /* Simply for convenience */
@@ -40,6 +41,7 @@ class Sensor {
 public:
   sensor_id id;
   virtual void read(MeasureP data) = 0;
+  virtual void init() = 0;
 };
 
 /* Simply for convenience */
@@ -76,11 +78,12 @@ public:
   Tp dequeue();
   Tp peek();
   size_t lenght() { return lenght_; };
+  operator bool() const noexcept { return lenght_ != 0; }
 
 private:
-  Node<Tp> *head_;
-  Node<Tp> *tail_;
-  size_t lenght_;
+  Node<Tp> *head_{nullptr};
+  Node<Tp> *tail_{nullptr};
+  size_t lenght_{0};
 };
 
 /* Enqueue member function */
@@ -124,7 +127,7 @@ template <typename Tp> struct LogData {
   Tp measure;
   LogData(sensor::sensor_id ID, std::chrono::year_month_day data, Tp sample)
       : id{ID}, date{data}, measure{sample} {};
-  friend std::ostream &operator<<(std::ostream &os, LogData const &log);
+  friend std::ostream &operator<<(std::ostream &os, LogData<double> const &log);
 };
 
 } // namespace logs

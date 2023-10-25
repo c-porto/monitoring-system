@@ -18,6 +18,8 @@
 extern "C" void app_main(void) {
   /* Creates mutexes*/
   create_mutex();
+  /* Creates semaphores*/
+  create_semphr();
   /* Creates event groups*/
   create_event_groups();
   /* Creates tasks */

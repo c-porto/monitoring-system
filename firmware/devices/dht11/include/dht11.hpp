@@ -60,12 +60,13 @@ struct dht_reading
 class Dht11 : public sensor::Sensor
 {
   public:
-    void read(sensor::MeasureP ms) override;
     Dht11(uint32_t dht_pin);
+    void read(sensor::MeasureP ms) override;
+    void init() override;
 
   private:
     dht_data raw_data_;
-    idf::GPIONum pin;
+    idf::GPIONum pin_;
     dht_err is_valid_data() const;
     void init_comm();
 };
