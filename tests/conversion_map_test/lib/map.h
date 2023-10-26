@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <functional>
 #include <memory>
 namespace ds
 {
@@ -85,5 +86,26 @@ template <typename __Tp> auto Queue<__Tp>::dequeue() -> __Tp
     }
     return value;
 }
-
 } // namespace ds
+
+namespace logs
+{
+struct MeasureMock
+{
+    double a{1.0};
+    double b{2.0};
+    double c{3.0};
+    double d{4.0};
+};
+} // namespace logs
+namespace sensor
+{
+typedef enum
+{
+    DHT11_ID,
+    GYML8511_ID,
+    CJMCU811_ID,
+} sensor_id;
+} // namespace sensor
+
+using LogHandlerMock = std::function<void(ds::Queue<double> &, logs::MeasureMock &)>;
