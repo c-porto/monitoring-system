@@ -4,6 +4,7 @@
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include <chrono>
+#include <cstddef>
 #include <sstream>
 
 /* Task handle */
@@ -14,10 +15,12 @@ extern const std::unordered_map<sensor::sensor_id, LogHandler> log_conversion;
 
 /* Equivalent to static global variables */
 namespace {
-/* Queue for storage and communication with linux*/
-ds::Queue<logs::LogData<double>> fila{};
 /* Log Tag for debugging */
 const char *TAG = "LINUX LOG";
+/* Max number of logs stored at any point in time */
+constexpr std::size_t log_lenght{100};
+/* Queue for storage and communication with linux*/
+ds::Queue<logs::LogData<double>> fila{log_lenght};
 /* Used for variable to string convertions */
 std::stringstream ss;
 } // namespace
@@ -35,6 +38,13 @@ void vTaskLinux(void *params) {
   while (true) {
 
     /* Event Waiting */
+    auto semphr_take =
+        xSemaphoreTake(sensor_read_semphr,
+                       portMAX_DELAY); /* Taking semaphore of sensors tasks  */
+    if (semphr_take != pdPASS) {
+      /* Logging error on counting semaphore take */
+      ESP_LOGI(TAG, "Error taking semaphore");
+    }
 
     /* Mutex lock */
     if (auto p = xSemaphoreTake(mutex, pdMS_TO_TICKS(10000));

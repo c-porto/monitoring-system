@@ -9,6 +9,7 @@
 #define TASK_LINUX_CORE 1
 
 extern SemaphoreHandle_t mutex;
+extern SemaphoreHandle_t sensor_read_semphr;
 extern TaskHandle_t xTaskLinuxHandle;
 
 void vTaskLinux(void *params);

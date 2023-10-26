@@ -16,11 +16,6 @@ namespace {
 const char *TAG = "DHT11 Driver";
 }
 
-void Dht11::init() {
-  const idf::GPIO_Output dht_pin(pin_);
-  dht_pin.set_high();
-}
-
 dht_err check_bus_status(idf::GPIONum pin, std::size_t time_espected,
                          idf::GPIOLevel level_expected) {
   const idf::GPIOInput dht_pin(pin);
@@ -55,6 +50,12 @@ dht_rx_level rx_bit(idf::GPIONum pin_number, std::size_t time_espected,
 }
 
 dht_reading::dht_reading(double T, double Hm) : temp{T}, humidity{Hm} {}
+namespace sensor {
+
+void Dht11::init() {
+  const idf::GPIO_Output dht_pin(pin_);
+  dht_pin.set_high();
+}
 
 Dht11::Dht11(uint32_t dht_pin) : pin_(dht_pin) {
   id = sensor::DHT11_ID;
@@ -127,7 +128,7 @@ void Dht11::read(sensor::MeasureP ms) {
 
   if (this->is_valid_data() != DHT11_OK) {
     ms->err = true;
-    ESP_LOGI(TAG,"Failed in check sum");
+    ESP_LOGI(TAG, "Failed in check sum");
     return;
   }
 
@@ -141,4 +142,6 @@ void Dht11::read(sensor::MeasureP ms) {
   ms->last_id = this->id;
 
   /* Semaphore Give */
+  xSemaphoreGive(sensor_read_semphr);
 }
+} // namespace sensor

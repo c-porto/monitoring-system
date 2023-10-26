@@ -4,6 +4,7 @@
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
+#include <cstddef>
 
 /* Task handle*/
 TaskHandle_t xTaskDhtHandle;
@@ -12,8 +13,10 @@ TaskHandle_t xTaskDhtHandle;
 namespace {
 /* Tag used for logging*/
 const char *TAG = "DHT Task";
+/* Pin where dht sensor data pin is connected*/
+constexpr std::size_t dht_pin = 25;
 /* Dht11 sensor instance*/
-Dht11 dht_sensor{4};
+sensor::Dht11 dht_sensor{dht_pin};
 } // namespace
 
 /* Dht11 task*/

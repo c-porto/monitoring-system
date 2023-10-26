@@ -8,7 +8,6 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 
-
 #define EMBEDDED_CPP 1
 #define ELETRONIC_PROJECT 1
 
@@ -20,6 +19,7 @@ sensor::MeasureP ms{};
 
 /* Global mutex to protect ms variable*/
 SemaphoreHandle_t mutex;
+SemaphoreHandle_t sensor_read_semphr;
 
 /* Creates all tasks*/
 void create_tasks() {
@@ -41,4 +41,4 @@ void create_event_groups() {}
 void create_mutex() { mutex = xSemaphoreCreateMutex(); }
 
 /* Creates counting semaphores*/
-void create_semphr() {}
+void create_semphr() { sensor_read_semphr = xSemaphoreCreateCounting(3U, 0U); }
