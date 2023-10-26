@@ -19,12 +19,14 @@ std::array<std::string, 10> nodes = {"Node 1", "Node 2", "Node 3", "Node 4",
                                      "Node 9", "Node 10"};
 } // namespace
 
+/* Testing Constructor of the Queue */
 TEST(QueueTest, ConstructorTest) {
   ds::Queue<std::string> fila{5};
   EXPECT_EQ(fila.capacity(), 5) << "Unequal capacity from constructor";
   EXPECT_EQ(fila.lenght(), 0) << "Unequal lenght from constructor";
 }
 
+/* Testing Adding and Removing itens */
 TEST(QueueTest, EnqueueDequeueTest) {
   ds::Queue<std::string> fila{5};
   for (std::size_t i{0}; i < 5; ++i) {
@@ -36,6 +38,7 @@ TEST(QueueTest, EnqueueDequeueTest) {
   }
 }
 
+/* Testing Boolean Conversion */
 TEST(QueueTest, BooleanConversion) {
   ds::Queue<std::string> fila{1};
   std::size_t y{0};
@@ -50,6 +53,7 @@ TEST(QueueTest, BooleanConversion) {
   EXPECT_EQ(y, 1) << "Error in boolean conversion";
 }
 
+/* Testing Circular Linked List Behavior */
 TEST(QueueTest, CircularTest) {
   ds::Queue<std::string> fila{5};
   for (std::size_t i{0}; i < nodes.size(); ++i) {
@@ -70,6 +74,7 @@ TEST(QueueTest, CircularTest) {
   }
 }
 
+/* Testing Static Max Capacity Behavior */
 TEST(QueueTest, MaxCapacityTest) {
   ds::Queue<std::string> fila{1};
   ds::Queue<std::string> queue{5};

@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <ostream>
 #include <unordered_map>
 
@@ -64,97 +65,62 @@ private:
 /* Namespace for data structures */
 namespace ds {
 /* Node struct for linked list*/
-template <typename __Tp> struct Node {
-  __Tp value;
-  Node *next;
-  Node(__Tp item) : value{item}, next{nullptr} {}
+template <typename Tp> struct Node {
+  Tp value;
+  std::shared_ptr<Node> next;
+  Node(Tp item) : value{item}, next{nullptr} {}
 };
-/* Queue based on a circular linked list with static capacity */
-template <typename __Tp> class Queue {
-  /* Typedef for convenience */
-  using NodeP = Node<__Tp> *;
+/* Queue class implemented to be a static capacity circular linked list */
+template <typename Tp> class Queue {
+  using NodeP = std::shared_ptr<Node<Tp>>;
 
 public:
-  /* Constructor */
   Queue(std::size_t capacity) : capacity_{capacity} {}
-  /* Enqueue at the end of queue */
-  auto enqueue(__Tp item) -> void;
-  /* Dequeue head of the queue */
-  auto dequeue() -> __Tp;
-  /* Peek the value of head node */
-  auto peek() const -> __Tp { return head_->value; }
-  /* Lenght of the queue */
+  auto enqueue(Tp item) -> void;
+  auto dequeue() -> Tp;
+  auto peek() const -> Tp { return head_->value; }
   auto lenght() const -> std::size_t { return lenght_; }
-  /* Maximum capacity of the queue */
   auto capacity() const -> std::size_t { return capacity_; }
-  /* Standard Bool conversion for empty queue check */
   operator bool() const { return lenght_ != 0; }
 
 private:
-  /* Stores maximum capacity of the queue */
   std::size_t capacity_;
-  /* Stores current lenght of the queue */
   std::size_t lenght_{0};
-  /* Pointer to the head Node of the queue, meaning the first item of queue */
   NodeP head_{nullptr};
-  /* Pointer to the tail Node of the queue, meaning the last item of queue */
   NodeP tail_{nullptr};
 };
 
-template <typename __Tp> auto Queue<__Tp>::enqueue(__Tp item) -> void {
-  /* Checks if the current lenght exceed max capacity */
+/* Enqueue itens in the back of the queue */
+template <typename Tp> auto Queue<Tp>::enqueue(Tp item) -> void {
   if (lenght_ < capacity_) {
-    /* Checks if the queue is empty */
     if (tail_ == nullptr) {
-      /* Creates first Node with item parameter */
-      tail_ = new Node(item);
-      /* Makes head point to tail */
+      tail_ = std::make_shared<Node<Tp>>(item);
       head_ = tail_;
     } else {
-      /* Creates new Node to add */
-      NodeP node = new Node(item);
-      /* Makes the tail node point to newly created node  */
+      NodeP node = std::make_shared<Node<Tp>>(item);
       tail_->next = node;
-      /* Makes the tail point to the new node */
       tail_ = node;
-      /* Asserts circular functionality */
       tail_->next = head_;
     }
-    /* Updates lenght */
     lenght_++;
-  } else /* If lenght is equal to capacity */ {
-    /* Updates item in head  */
+  } else {
     head_->value = item;
-    /* Makes the tail node point to head */
     tail_->next = head_;
-    /* Makes the tail point to head */
     tail_ = head_;
-    /* Updates head to the next node */
     head_ = head_->next;
   }
 }
-template <typename __Tp> auto Queue<__Tp>::dequeue() -> __Tp {
-  /* Decreases lenght */
+
+/* Dequeue itens from the front of the queue */
+template <typename Tp> auto Queue<Tp>::dequeue() -> Tp {
   --lenght_;
-  /* Saves variable to return */
-  __Tp value = head_->value;
-  /* Creates temporary node pointer to help deleting the dequeued node*/
-  NodeP tmp = head_;
-  /* Updates head */
+  Tp value = head_->value;
   head_ = head_->next;
-  /* Decoupling the node to be destroyed */
-  tmp->next = nullptr;
-  /* Checking if the queue is not empty */
   if (lenght_ != 0) {
-    /* Restore circular behavior of the queue */
     tail_->next = head_;
   } else {
-    /* Updates tail to avoid nullptr dereference */
     tail_ = nullptr;
   }
-  /* Deletes dequeued node memory*/
-  delete tmp;
-  /* Return value*/
   return value;
 }
 
