@@ -38,8 +38,8 @@ typedef enum
 } dht_err;
 
 void dht_init(idf::GPIONum pin);
-dht_err check_bus_status(idf::GPIONum pin_number, size_t time_espected, idf::GPIOLevel level_expected);
-dht_rx_level rx_bit(idf::GPIONum pin_number, size_t time_espected, size_t min_time, idf::GPIOLevel level_expected);
+dht_err check_bus_status(idf::GPIONum pin_number, std::size_t time_espected, idf::GPIOLevel level_expected);
+dht_rx_level rx_bit(idf::GPIONum pin_number, std::size_t time_espected, std::size_t min_time, idf::GPIOLevel level_expected);
 
 struct dht_data
 {

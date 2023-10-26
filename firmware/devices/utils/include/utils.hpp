@@ -63,58 +63,100 @@ private:
 
 /* Namespace for data structures */
 namespace ds {
-/* Node struct for linked list */
-template <typename Tp> struct Node {
-  Tp value;
+/* Node struct for linked list*/
+template <typename __Tp> struct Node {
+  __Tp value;
   Node *next;
-  Node(Tp item) : value{item}, next{nullptr} {};
+  Node(__Tp item) : value{item}, next{nullptr} {}
 };
+/* Queue based on a circular linked list with static capacity */
+template <typename __Tp> class Queue {
+  /* Typedef for convenience */
+  using NodeP = Node<__Tp> *;
 
-/* Queue for data storage and communication with linux host */
-template <typename Tp> class Queue {
 public:
-  Queue() : head_{nullptr}, tail_{nullptr}, lenght_{0} {};
-  void enqueue(Tp item);
-  Tp dequeue();
-  Tp peek();
-  size_t lenght() { return lenght_; };
-  operator bool() const noexcept { return lenght_ != 0; }
+  /* Constructor */
+  Queue(std::size_t capacity) : capacity_{capacity} {}
+  /* Enqueue at the end of queue */
+  auto enqueue(__Tp item) -> void;
+  /* Dequeue head of the queue */
+  auto dequeue() -> __Tp;
+  /* Peek the value of head node */
+  auto peek() const -> __Tp { return head_->value; }
+  /* Lenght of the queue */
+  auto lenght() const -> std::size_t { return lenght_; }
+  /* Maximum capacity of the queue */
+  auto capacity() const -> std::size_t { return capacity_; }
+  /* Standard Bool conversion for empty queue check */
+  operator bool() const { return lenght_ != 0; }
 
 private:
-  Node<Tp> *head_{nullptr};
-  Node<Tp> *tail_{nullptr};
-  size_t lenght_{0};
+  /* Stores maximum capacity of the queue */
+  std::size_t capacity_;
+  /* Stores current lenght of the queue */
+  std::size_t lenght_{0};
+  /* Pointer to the head Node of the queue, meaning the first item of queue */
+  NodeP head_{nullptr};
+  /* Pointer to the tail Node of the queue, meaning the last item of queue */
+  NodeP tail_{nullptr};
 };
 
-/* Enqueue member function */
-template <typename Tp> void Queue<Tp>::enqueue(Tp item) {
-  lenght_++;
-  if (tail_ == nullptr) {
-    tail_ = new Node(item);
-    head_ = tail_;
-  } else {
-    Node<Tp> *node = new Node(item);
-    tail_->next = node;
-    tail_ = node;
+template <typename __Tp> auto Queue<__Tp>::enqueue(__Tp item) -> void {
+  /* Checks if the current lenght exceed max capacity */
+  if (lenght_ < capacity_) {
+    /* Checks if the queue is empty */
+    if (tail_ == nullptr) {
+      /* Creates first Node with item parameter */
+      tail_ = new Node(item);
+      /* Makes head point to tail */
+      head_ = tail_;
+    } else {
+      /* Creates new Node to add */
+      NodeP node = new Node(item);
+      /* Makes the tail node point to newly created node  */
+      tail_->next = node;
+      /* Makes the tail point to the new node */
+      tail_ = node;
+      /* Asserts circular functionality */
+      tail_->next = head_;
+    }
+    /* Updates lenght */
+    lenght_++;
+  } else /* If lenght is equal to capacity */ {
+    /* Updates item in head  */
+    head_->value = item;
+    /* Makes the tail node point to head */
+    tail_->next = head_;
+    /* Makes the tail point to head */
+    tail_ = head_;
+    /* Updates head to the next node */
+    head_ = head_->next;
   }
 }
-
-/* Dequeue member function */
-template <typename Tp> Tp Queue<Tp>::dequeue() {
-  lenght_--;
-  Node<Tp> *head = head_;
+template <typename __Tp> auto Queue<__Tp>::dequeue() -> __Tp {
+  /* Decreases lenght */
+  --lenght_;
+  /* Saves variable to return */
+  __Tp value = head_->value;
+  /* Creates temporary node pointer to help deleting the dequeued node*/
+  NodeP tmp = head_;
+  /* Updates head */
   head_ = head_->next;
-  Tp value = head->value;
-  head->next = nullptr;
-  if (lenght_ == 0) {
+  /* Decoupling the node to be destroyed */
+  tmp->next = nullptr;
+  /* Checking if the queue is not empty */
+  if (lenght_ != 0) {
+    /* Restore circular behavior of the queue */
+    tail_->next = head_;
+  } else {
+    /* Updates tail to avoid nullptr dereference */
     tail_ = nullptr;
   }
-  delete head;
+  /* Deletes dequeued node memory*/
+  delete tmp;
+  /* Return value*/
   return value;
 }
-
-/* Peek member function */
-template <typename Tp> Tp Queue<Tp>::peek() { return head_->value; }
 
 } // namespace ds
 
@@ -133,12 +175,12 @@ template <typename Tp> struct LogData {
 } // namespace logs
 
 /* Used for naming convenience */
-using log_handler =
+using LogHandler =
     std::function<void(ds::Queue<logs::LogData<double>> &, sensor::Measure &)>;
 
 /* Map used for handle individual measurements, needed since dht11 reads two
  * variables at time */
-const std::unordered_map<sensor::sensor_id, log_handler> log_conversion{
+const std::unordered_map<sensor::sensor_id, LogHandler> log_conversion{
     /* Dht11 handler for single read enqueue */
     {sensor::DHT11_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {

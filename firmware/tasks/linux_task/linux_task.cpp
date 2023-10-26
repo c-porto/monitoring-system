@@ -10,7 +10,7 @@
 TaskHandle_t xTaskLinuxHandle;
 
 /* Simply to remind of the handler map variable declared in utils.hpp*/
-extern const std::unordered_map<sensor::sensor_id, log_handler> log_conversion;
+extern const std::unordered_map<sensor::sensor_id, LogHandler> log_conversion;
 
 /* Equivalent to static global variables */
 namespace {

@@ -13,7 +13,7 @@
 #include <sys/_stdint.h>
 
 namespace {
-const char *TAG = "DHT11";
+const char *TAG = "DHT11 Driver";
 }
 
 void Dht11::init() {
@@ -21,7 +21,7 @@ void Dht11::init() {
   dht_pin.set_high();
 }
 
-dht_err check_bus_status(idf::GPIONum pin, size_t time_espected,
+dht_err check_bus_status(idf::GPIONum pin, std::size_t time_espected,
                          idf::GPIOLevel level_expected) {
   const idf::GPIOInput dht_pin(pin);
   int8_t time_count = 0;
@@ -37,10 +37,10 @@ dht_err check_bus_status(idf::GPIONum pin, size_t time_espected,
   return status;
 }
 
-dht_rx_level rx_bit(idf::GPIONum pin_number, size_t time_espected,
-                    size_t min_time, idf::GPIOLevel level_expected) {
+dht_rx_level rx_bit(idf::GPIONum pin_number, std::size_t time_espected,
+                    std::size_t min_time, idf::GPIOLevel level_expected) {
   const idf::GPIOInput dht_pin(pin_number);
-  size_t time_count = 0;
+  std::size_t time_count = 0;
   dht_rx_level bit;
   while (dht_pin.get_level() == level_expected) {
     if (time_count < time_espected) {
@@ -102,8 +102,8 @@ void Dht11::read(sensor::MeasureP ms) {
       return;
     }
 
-    for (size_t i{0}; i < NUMBER_OF_BITS; ++i) {
-      size_t idx = std::floor(i / 8U);
+    for (std::size_t i{0}; i < NUMBER_OF_BITS; ++i) {
+      std::size_t idx = std::floor(i / 8U);
       timing_err = check_bus_status(this->pin_, DATA_BEGIN_TIME_US,
                                     idf::GPIOLevel::HIGH);
       if (timing_err != DHT11_OK) {

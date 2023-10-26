@@ -52,6 +52,8 @@ compile_commands.json
 *.aux
 *.log 
 **/images
+*.fls
+*.fdb_latexmk
 
 # -----------------------------------------------------------------------------
 # Rust stuff
