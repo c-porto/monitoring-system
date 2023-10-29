@@ -1,24 +1,28 @@
 #include "include/task_api.hpp"
-#include "../../devices/utils/include/utils.hpp"
 #include "../linux_task/include/linux_task.hpp"
 #include "dht11.hpp"
 #include "dht11_task.hpp"
+#include "../gyml8511_task/include/gyml8511_task.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
-#include <freertos/semphr.h>
 
 #define EMBEDDED_CPP 1
 #define ELETRONIC_PROJECT 1
+#define TASK_DEBUG
 
 /* Equivalent to static globals*/
 namespace {
+/* TAG for logging*/
+const char *TAG = "TASK";
 /* Global measurement variable*/
 sensor::MeasureP ms{};
 } // namespace
 
 /* Global mutex to protect ms variable*/
 SemaphoreHandle_t mutex;
+/* Global semaphore to syncronize sensor tasks */
 SemaphoreHandle_t sensor_read_semphr;
 
 /* Creates all tasks*/
@@ -26,6 +30,19 @@ void create_tasks() {
   /* Creating Dht11 sensor task*/
   xTaskCreatePinnedToCore(vTaskDht, TASK_DHT_NAME, TASK_DHT_STACK_SIZE, &ms,
                           TASK_DHT_PRIORITY, &xTaskDhtHandle, TASK_DHT_CORE);
+#ifdef TASK_DEBUG
+  if (xTaskDhtHandle == NULL) {
+    ESP_LOGI(TAG, "Failed to Create DHT TASK");
+  }
+#endif
+  /* Creating Gyml8511 sensor task*/
+  xTaskCreatePinnedToCore(vTaskGyml, TASK_GYML_NAME, TASK_GYML_STACK_SIZE, &ms,
+                          TASK_GYML_PRIORITY, &xTaskGymlHandle, TASK_GYML_CORE);
+#ifdef TASK_DEBUG
+  if (xTaskGymlHandle == NULL) {
+    ESP_LOGI(TAG, "Failed to Create GYML TASK");
+  }
+#endif
   /* Creating Linux communication task*/
 #if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
   xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE,

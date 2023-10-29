@@ -2,8 +2,8 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
-#include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "freertos/task.h"
 
 #include "../../utils/include/utils.hpp"
 #include "esp_log.h"
@@ -20,10 +20,11 @@
 #define PULL_UP_TIME_US 35U
 #define RESPONSE_TIME_US 80U
 #define DATA_BEGIN_TIME_US 50U
-#define MAX_LOW_BIT_TIME_US 28U
+#define MAX_LOW_BIT_TIME_US 50U
 #define MAX_HIGH_BIT_TIME_US 70U
 
-extern SemaphoreHandle_t sensor_read_semphr;
+namespace sensor {
+namespace __dht11 {
 
 typedef enum {
   DHT11_RX_LOW,
@@ -58,17 +59,17 @@ struct dht_reading {
   dht_reading(double T, double Hm);
 };
 
-namespace sensor {
-class Dht11 : public Sensor {
+} // namespace __dht11
+class Dht11 final : public Sensor {
 public:
   Dht11(uint32_t dht_pin);
   void read(sensor::MeasureP ms) override;
   void init() override;
 
 private:
-  dht_data raw_data_;
+  __dht11::dht_data raw_data_;
   idf::GPIONum pin_;
-  dht_err is_valid_data() const;
+  __dht11::dht_err is_valid_data() const;
   void init_comm();
 };
 

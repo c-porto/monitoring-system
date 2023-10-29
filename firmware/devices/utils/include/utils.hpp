@@ -146,7 +146,7 @@ using LogHandler =
 
 /* Map used for handle individual measurements, needed since dht11 reads two
  * variables at time */
-const std::unordered_map<sensor::sensor_id, LogHandler> log_conversion{
+const std::unordered_map<sensor::sensor_id, LogHandler> kLogConversion{
     /* Dht11 handler for single read enqueue */
     {sensor::DHT11_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {

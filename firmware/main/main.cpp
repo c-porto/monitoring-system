@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <thread>
 
+
 /* Main function */
 extern "C" void app_main(void) {
   /* Creates mutexes*/

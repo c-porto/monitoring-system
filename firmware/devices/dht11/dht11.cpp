@@ -16,8 +16,9 @@ namespace {
 const char *TAG = "DHT11 Driver";
 }
 
-dht_err check_bus_status(idf::GPIONum pin, std::size_t time_espected,
-                         idf::GPIOLevel level_expected) {
+namespace sensor {
+__dht11::dht_err check_bus_status(idf::GPIONum pin, std::size_t time_espected,
+                                  idf::GPIOLevel level_expected) {
   const idf::GPIOInput dht_pin(pin);
   int8_t time_count = 0;
   while (dht_pin.get_level() == level_expected) {
@@ -25,32 +26,35 @@ dht_err check_bus_status(idf::GPIONum pin, std::size_t time_espected,
       ets_delay_us(1);
       time_count++;
     } else {
-      return DHT11_TIMEOUT_ERR;
+      return __dht11::DHT11_TIMEOUT_ERR;
     }
   }
-  dht_err status = (time_count != 0) ? DHT11_OK : DHT11_BUS_ERR;
+  __dht11::dht_err status =
+      (time_count != 0) ? __dht11::DHT11_OK : __dht11::DHT11_BUS_ERR;
   return status;
 }
 
-dht_rx_level rx_bit(idf::GPIONum pin_number, std::size_t time_espected,
-                    std::size_t min_time, idf::GPIOLevel level_expected) {
+__dht11::dht_rx_level rx_bit(idf::GPIONum pin_number, std::size_t time_espected,
+                             std::size_t min_time,
+                             idf::GPIOLevel level_expected) {
   const idf::GPIOInput dht_pin(pin_number);
   std::size_t time_count = 0;
-  dht_rx_level bit;
+  __dht11::dht_rx_level bit;
   while (dht_pin.get_level() == level_expected) {
     if (time_count < time_espected) {
       ets_delay_us(1);
       time_count++;
     } else {
-      return DHT11_RX_ERR;
+      return __dht11::DHT11_RX_ERR;
     }
   }
-  bit = (time_count > min_time) ? DHT11_RX_HIGH : DHT11_RX_LOW;
+  bit =
+      (time_count > min_time) ? __dht11::DHT11_RX_HIGH : __dht11::DHT11_RX_LOW;
   return bit;
 }
 
-dht_reading::dht_reading(double T, double Hm) : temp{T}, humidity{Hm} {}
-namespace sensor {
+__dht11::dht_reading::dht_reading(double T, double Hm)
+    : temp{T}, humidity{Hm} {}
 
 void Dht11::init() {
   const idf::GPIO_Output dht_pin(pin_);
@@ -62,11 +66,12 @@ Dht11::Dht11(uint32_t dht_pin) : pin_(dht_pin) {
   this->init();
 }
 
-dht_err Dht11::is_valid_data() const {
+__dht11::dht_err Dht11::is_valid_data() const {
   uint8_t tmp = raw_data_.dec_t_data + raw_data_.int_t_data +
                 raw_data_.int_rh_data + raw_data_.dec_rh_data;
-  dht_err frame_check =
-      (tmp == raw_data_.check_sum) ? DHT11_OK : DHT11_CHECKSUM_ERR;
+  __dht11::dht_err frame_check = (tmp == raw_data_.check_sum)
+                                     ? __dht11::DHT11_OK
+                                     : __dht11::DHT11_CHECKSUM_ERR;
   return frame_check;
 }
 
@@ -84,30 +89,30 @@ void Dht11::init_comm() {
 }
 
 void Dht11::read(sensor::MeasureP ms) {
-  dht_err timing_err;
-  dht_rx_level bit;
+  __dht11::dht_err timing_err;
+  __dht11::dht_rx_level bit;
   uint8_t buffer[5]{0};
   this->init_comm();
 
   try {
     timing_err =
         check_bus_status(this->pin_, RESPONSE_TIME_US, idf::GPIOLevel::LOW);
-    if (timing_err != DHT11_OK) {
+    if (timing_err != __dht11::DHT11_OK) {
       ms->err = true;
       return;
     }
     timing_err =
         check_bus_status(this->pin_, RESPONSE_TIME_US, idf::GPIOLevel::HIGH);
-    if (timing_err != DHT11_OK) {
+    if (timing_err != __dht11::DHT11_OK) {
       ms->err = true;
       return;
     }
-
+    std::size_t idx{0};
     for (std::size_t i{0}; i < NUMBER_OF_BITS; ++i) {
-      std::size_t idx = std::floor(i / 8U);
+      idx = std::floor(i / 8U);
       timing_err = check_bus_status(this->pin_, DATA_BEGIN_TIME_US,
                                     idf::GPIOLevel::HIGH);
-      if (timing_err != DHT11_OK) {
+      if (timing_err != __dht11::DHT11_OK) {
         ms->err = true;
         return;
       }
@@ -126,7 +131,7 @@ void Dht11::read(sensor::MeasureP ms) {
   this->raw_data_.dec_t_data = buffer[3];
   this->raw_data_.check_sum = buffer[4];
 
-  if (this->is_valid_data() != DHT11_OK) {
+  if (this->is_valid_data() != __dht11::DHT11_OK) {
     ms->err = true;
     ESP_LOGI(TAG, "Failed in check sum");
     return;
@@ -140,8 +145,5 @@ void Dht11::read(sensor::MeasureP ms) {
   ms->temp = temperature;
   ms->hm = humidity;
   ms->last_id = this->id;
-
-  /* Semaphore Give */
-  xSemaphoreGive(sensor_read_semphr);
 }
 } // namespace sensor

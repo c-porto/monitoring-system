@@ -10,12 +10,13 @@
 /* Task properties */
 #define TASK_DHT_NAME "TaskDht"
 #define TASK_DHT_STACK_SIZE 2048
-#define TASK_DHT_PRIORITY 1
+#define TASK_DHT_PRIORITY 3
 #define TASK_DHT_PERIOD_MS 1200
 #define TASK_DHT_CORE 0
 #define TASK_DHT_INIT_TIMEOUT_MS 2400
 
 extern TaskHandle_t xTaskDhtHandle;
 extern SemaphoreHandle_t mutex;
+extern SemaphoreHandle_t sensor_read_semphr;
 
 void vTaskDht(void *params);

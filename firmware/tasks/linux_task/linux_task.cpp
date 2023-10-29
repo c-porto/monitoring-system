@@ -11,7 +11,7 @@
 TaskHandle_t xTaskLinuxHandle;
 
 /* Simply to remind of the handler map variable declared in utils.hpp*/
-extern const std::unordered_map<sensor::sensor_id, LogHandler> log_conversion;
+extern const std::unordered_map<sensor::sensor_id, LogHandler> kLogConversion;
 
 /* Equivalent to static global variables */
 namespace {
@@ -38,13 +38,8 @@ void vTaskLinux(void *params) {
   while (true) {
 
     /* Event Waiting */
-    auto semphr_take =
-        xSemaphoreTake(sensor_read_semphr,
-                       portMAX_DELAY); /* Taking semaphore of sensors tasks  */
-    if (semphr_take != pdPASS) {
-      /* Logging error on counting semaphore take */
-      ESP_LOGI(TAG, "Error taking semaphore");
-    }
+    xSemaphoreTake(sensor_read_semphr,
+                   portMAX_DELAY); /* Taking semaphore of sensors tasks  */
 
     /* Mutex lock */
     if (auto p = xSemaphoreTake(mutex, pdMS_TO_TICKS(10000));
@@ -58,9 +53,9 @@ void vTaskLinux(void *params) {
       if (sample) {
 
         /* Getting correct iterator from log handler map*/
-        auto sensor_log{log_conversion.find(sample.last_id)};
+        auto it{kLogConversion.find(sample.last_id)};
         /* Enqueueing correct sample */
-        sensor_log->second(fila, sample);
+        it->second(fila, sample);
       } else /* If there is a error in the measure */
       {
         /* Logging error */

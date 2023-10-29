@@ -1,39 +1,39 @@
-#include "include/dht11_task.hpp"
 #include "../../devices/utils/include/utils.hpp"
+#include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
 #include <cstddef>
+#include "esp_log.h"
+#include "include/gyml8511_task.hpp"
 
 /* Task handle*/
-TaskHandle_t xTaskDhtHandle;
+TaskHandle_t xTaskGymlHandle;
 
 /* Equivalent to static globals*/
 namespace {
 /* Tag used for logging*/
-const char *TAG = "DHT Task";
-/* Pin where dht sensor data pin is connected*/
-constexpr std::size_t kDhtPin{32};
-/* Dht11 sensor instance*/
-sensor::Dht11 dht_sensor{kDhtPin};
+const char *TAG = "GYML Task";
+/* Gyml sensor instance*/
+sensor::Gyml8511 gyml_sensor{};
 } // namespace
 
-/* Dht11 task*/
-void vTaskDht(void *params) {
+/* Gyml8511 task*/
+void vTaskGyml(void *params) {
   /* Used for logging*/
-  ESP_LOGI(TAG, "Creating Dht Task");
+  ESP_LOGI(TAG, "Creating Gyml Task");
   /* Used for managing time requirements*/
   TickType_t lastWakeTime = xTaskGetTickCount();
   /* Getting global measurement variable*/
   auto measurement = static_cast<sensor::MeasureP>(params);
   /* Creating Dht11 Sensor API */
-  sensor::SensorAPI sensor{&dht_sensor, measurement};
+  sensor::SensorAPI sensor{&gyml_sensor, measurement};
 
   /* Main loop*/
   while (true) {
     /* Used for logging */
-    ESP_LOGI(TAG, "Reading Temperature");
+    ESP_LOGI(TAG, "Reading UV Irradiance");
     try {
       /* Mutex lock */
       if (auto pass = xSemaphoreTake(mutex, pdMS_TO_TICKS(10000));
@@ -50,7 +50,7 @@ void vTaskDht(void *params) {
     /* Treats gpio exceptions*/
     catch (idf::GPIOException &err) {
       /* Logs error */
-      ESP_LOGI(TAG, "Exception Ocurred in Dht measurement");
+      ESP_LOGI(TAG, "Exception Ocurred in Gyml measurement");
       /* Mutex unlock to prevent deadlock*/
       xSemaphoreGive(mutex);
     }
@@ -58,6 +58,6 @@ void vTaskDht(void *params) {
     xSemaphoreGive(sensor_read_semphr);
     /* Event Group */
     /* Yields back to scheduler */
-    vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_DHT_PERIOD_MS));
+    vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_GYML_PERIOD_MS));
   }
 }
