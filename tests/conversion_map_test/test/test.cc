@@ -34,7 +34,7 @@ std::shared_ptr<sensor::sensor_id[]> sptr{new sensor::sensor_id[3]};
 constexpr double output[]{1.0, 2.0, 3.0, 4.0};
 }  // namespace
 
-/* Testing finding correct key, i.e finding correct sensor_id */
+/* Testing finding correct key, i.e. finding correct sensor_id */
 TEST(FunctionMapTest, FindKeyTest) {
   sptr[0] = sensor::DHT11_ID;
   sptr[1] = sensor::GYML8511_ID;

@@ -1,39 +1,43 @@
-#include "include/gyml8511_task.hpp"
 #include "../../devices/utils/include/utils.hpp"
-#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
 #include <cstddef>
+#include "esp_log.h"
+#include "include/cjmcu811_task.hpp"
+#include <../../devices/cjmcu-811/include/cjmcu-811.hpp>
 
 /* Task handle*/
-TaskHandle_t xTaskGymlHandle;
+TaskHandle_t xTaskCjmcu811Handle;
 
 /* Equivalent to static globals*/
 namespace {
 /* Tag used for logging*/
-const char *TAG = "GYML Task";
-/* Gyml sensor instance*/
-sensor::Gyml8511 gyml_sensor{};
+const char *TAG = "Cjmcu-811 Task";
+/* Cjmcu811 sensor instance*/
+sensor::Cjmcu811 cjmcu_sensor{};
 } // namespace
 
-/* Gyml8511 task*/
-void vTaskGyml(void *params) {
+/* Cjmcu811 task*/
+void vTaskCjmcu(void *params) {
   /* Used for logging*/
-  ESP_LOGI(TAG, "Creating Gyml Task");
+  ESP_LOGI(::TAG, "Creating Cjmcu Task");
+  /* Used for logging*/
+  ESP_LOGI(::TAG, "Initializing Sensor");
+  cjmcu_sensor.init();
   /* Used for managing time requirements*/
   TickType_t lastWakeTime = xTaskGetTickCount();
   /* Getting global measurement variable*/
   auto measurement = static_cast<sensor::MeasureP>(params);
   /* Creating Dht11 Sensor API */
-  sensor::SensorAPI sensor{&gyml_sensor, measurement};
+  sensor::SensorAPI sensor{&cjmcu_sensor, measurement};
 
   /* Main loop*/
   while (true) {
     /* Used for logging */
-    ESP_LOGI(TAG, "Reading UV Irradiance");
+    ESP_LOGI(::TAG, "Reading Air quality");
     try {
       /* Mutex lock */
       if (auto pass = xSemaphoreTake(mutex, pdMS_TO_TICKS(10000));
@@ -44,13 +48,13 @@ void vTaskGyml(void *params) {
         xSemaphoreGive(mutex);
       } else {
         /* Logs if task failed to obtain mutex*/
-        ESP_LOGI(TAG, "Failed to obtain mutex in time");
+        ESP_LOGI(::TAG, "Failed to obtain mutex in time");
       }
     }
     /* Treats gpio exceptions*/
     catch (idf::GPIOException &err) {
       /* Logs error */
-      ESP_LOGI(TAG, "Exception Ocurred in Gyml measurement");
+      ESP_LOGI(::TAG, "Exception Ocurred in Cjmcu measurement");
       /* Mutex unlock to prevent deadlock*/
       xSemaphoreGive(mutex);
     }
@@ -58,6 +62,6 @@ void vTaskGyml(void *params) {
     xSemaphoreGive(sensor_read_semphr);
     /* Event Group */
     /* Yields back to scheduler */
-    vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_GYML_PERIOD_MS));
+    vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_CJMCU811_PERIOD_MS));
   }
 }

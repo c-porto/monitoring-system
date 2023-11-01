@@ -12,6 +12,8 @@
 #include <sstream>
 #include <sys/_stdint.h>
 
+#define DEBUG_SENSOR
+
 namespace {
 const char *TAG = "DHT11 Driver";
 }
@@ -145,5 +147,12 @@ void Dht11::read(sensor::MeasureP ms) {
   ms->temp = temperature;
   ms->hm = humidity;
   ms->last_id = this->id;
+
+#ifdef DEBUG_SENSOR
+
+  ESP_LOGI(TAG, "Temperature reading is %f Celsius", temperature);
+  ESP_LOGI(TAG, "Humidity reading is %f", humidity);
+
+#endif
 }
 } // namespace sensor

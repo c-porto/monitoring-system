@@ -4,7 +4,7 @@
 #include <freertos/task.h>
 
 #define TASK_LINUX_NAME "TaskLinuxCommunication"
-#define TASK_LINUX_STACK_SIZE 2048
+#define TASK_LINUX_STACK_SIZE 5096
 #define TASK_LINUX_PRIORITY 1
 #define TASK_LINUX_CORE 1
 
