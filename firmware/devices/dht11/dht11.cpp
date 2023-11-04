@@ -147,6 +147,8 @@ void Dht11::read(sensor::MeasureP ms) {
   ms->temp = temperature;
   ms->hm = humidity;
   ms->last_id = this->id;
+  ms->date->ClockNow();
+  ms->date->CalendarNow();
 
 #ifdef DEBUG_SENSOR
 

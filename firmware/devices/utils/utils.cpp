@@ -1,4 +1,6 @@
 #include "include/utils.hpp"
+#include <memory>
+#include <ostream>
 
 std::ostream &operator<<(std::ostream &os, sensor::Measure const &ms) {
   os << "Temperature Reading: " << ms.temp << std::endl;
@@ -8,6 +10,8 @@ std::ostream &operator<<(std::ostream &os, sensor::Measure const &ms) {
   return os;
 }
 
+sensor::Measure::Measure() { date = std::make_shared<logs::ClockCalendar>(); }
+
 sensor::SensorAPI::SensorAPI(sensor::SensorP sensor, sensor::MeasureP data)
     : sensor_{sensor}, data_{data} {};
 
@@ -15,7 +19,7 @@ void sensor::SensorAPI::update_data() { sensor_->read(data_); }
 
 std::ostream &operator<<(std::ostream &os, logs::LogData<double> const &log) {
   os << "Sensor ID: " << log.id << std::endl;
-  // os << "Event Time" << log.date << std::endl;
-  os << log.measure;
+  os << "Event Time: " << log.timestamp << std::endl;
+  os << "Measurement: " << log.measure << std::endl;
   return os;
 }

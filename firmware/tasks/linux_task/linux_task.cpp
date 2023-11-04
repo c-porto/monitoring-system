@@ -1,11 +1,18 @@
 #include "include/linux_task.hpp"
 #include "../../devices/utils/include/utils.hpp"
+#include "../task_api/include/task_api.hpp"
 #include "esp_log.h"
+#include "freertos/event_groups.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include <chrono>
 #include <cstddef>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <sstream>
+
+#define DEBUG
+// #undef DEBUG
 
 /* Task handle */
 TaskHandle_t xTaskLinuxHandle;
@@ -31,15 +38,13 @@ void vTaskLinux(void *params) {
   /* Global measurement variable*/
   auto ms = static_cast<sensor::MeasureP>(params);
 
-  /* Still need to implement time control*/
-  std::chrono::year_month_day d;
-
   /* Main loop */
   while (true) {
 
     /* Event Waiting */
-    xSemaphoreTake(sensor_read_semphr,
-                   portMAX_DELAY); /* Taking semaphore of sensors tasks  */
+    xEventGroupWaitBits(
+        event_group, DHT_READ_EVENT | GYML811_READ_EVENT | CJMCU811_READ_EVENT,
+        pdTRUE, pdFALSE, portMAX_DELAY);
 
     /* Mutex lock */
     if (auto p = xSemaphoreTake(mutex, pdMS_TO_TICKS(10000));
@@ -56,6 +61,7 @@ void vTaskLinux(void *params) {
         auto it{kLogConversion.find(sample.last_id)};
         /* Enqueueing correct sample */
         it->second(fila, sample);
+
       } else /* If there is a error in the measure */
       {
         /* Logging error */

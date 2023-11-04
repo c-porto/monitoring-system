@@ -1,4 +1,5 @@
 #include "include/gyml8511_task.hpp"
+#include "../task_api/include/task_api.hpp"
 #include "../../devices/utils/include/utils.hpp"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -54,9 +55,12 @@ void vTaskGyml(void *params) {
       /* Mutex unlock to prevent deadlock*/
       xSemaphoreGive(mutex);
     }
-    /* Semaphore Give */
-    xSemaphoreGive(sensor_read_semphr);
     /* Event Group */
+    xEventGroupSetBits(
+        event_group,
+        GYML811_READ_EVENT |
+            GYML811_READ_EVENT_HTTP); /* Setting event bits related to sensor
+                                          reading*/
     /* Yields back to scheduler */
     vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_GYML_PERIOD_MS));
   }

@@ -6,6 +6,7 @@
 #include <freertos/queue.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
+#include "../../task_api/include/task_api.hpp"
 
 /* Task properties */
 #define TASK_DHT_NAME "TaskDht"
@@ -17,6 +18,6 @@
 
 extern TaskHandle_t xTaskDhtHandle;
 extern SemaphoreHandle_t mutex;
-extern SemaphoreHandle_t sensor_read_semphr;
+extern EventGroupHandle_t event_group;
 
 void vTaskDht(void *params);

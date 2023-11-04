@@ -1,13 +1,14 @@
+#include "include/cjmcu811_task.hpp"
 #include "../../devices/utils/include/utils.hpp"
+#include "../task_api/include/task_api.hpp"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
-#include <cstddef>
-#include "esp_log.h"
-#include "include/cjmcu811_task.hpp"
 #include <../../devices/cjmcu-811/include/cjmcu-811.hpp>
+#include <cstddef>
 
 /* Task handle*/
 TaskHandle_t xTaskCjmcu811Handle;
@@ -24,15 +25,17 @@ sensor::Cjmcu811 cjmcu_sensor{};
 void vTaskCjmcu(void *params) {
   /* Used for logging*/
   ESP_LOGI(::TAG, "Creating Cjmcu Task");
-  /* Used for logging*/
-  ESP_LOGI(::TAG, "Initializing Sensor");
-  cjmcu_sensor.init();
   /* Used for managing time requirements*/
   TickType_t lastWakeTime = xTaskGetTickCount();
   /* Getting global measurement variable*/
   auto measurement = static_cast<sensor::MeasureP>(params);
   /* Creating Dht11 Sensor API */
   sensor::SensorAPI sensor{&cjmcu_sensor, measurement};
+  /* Used for logging*/
+  ESP_LOGI(::TAG, "Initializing Sensor");
+  /* Initializing cjmcu sensor*/
+  cjmcu_sensor.init(); /* This initialization can take as much as 20 minutes for
+                          accurate readings*/
 
   /* Main loop*/
   while (true) {
@@ -58,9 +61,12 @@ void vTaskCjmcu(void *params) {
       /* Mutex unlock to prevent deadlock*/
       xSemaphoreGive(mutex);
     }
-    /* Semaphore Give */
-    xSemaphoreGive(sensor_read_semphr);
     /* Event Group */
+    xEventGroupSetBits(
+        event_group,
+        CJMCU811_READ_EVENT |
+            CJMCU811_READ_EVENT_HTTP); /* Setting event bits related to sensor
+                                          reading*/
     /* Yields back to scheduler */
     vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_CJMCU811_PERIOD_MS));
   }

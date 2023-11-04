@@ -86,6 +86,8 @@ void Gyml8511::read(MeasureP ms) {
   ms->uv = uv_intensity_;
   ms->err = false;
   ms->last_id = this->id;
+  ms->date->ClockNow();
+  ms->date->CalendarNow();
 
 #ifdef DEBUG_SENSOR
 

@@ -1,11 +1,12 @@
 #include "include/task_api.hpp"
+#include "../cjmcu811_task/include/cjmcu811_task.hpp"
 #include "../gyml8511_task/include/gyml8511_task.hpp"
 #include "../linux_task/include/linux_task.hpp"
-#include "../cjmcu811_task/include/cjmcu811_task.hpp"
 
 #include "dht11.hpp"
 #include "dht11_task.hpp"
 #include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
@@ -25,8 +26,8 @@ sensor::Measure ms{};
 
 /* Global mutex to protect ms variable*/
 SemaphoreHandle_t mutex;
-/* Global semaphore to syncronize sensor tasks */
-SemaphoreHandle_t sensor_read_semphr;
+/* Global event group handle to provide event syncronization */
+EventGroupHandle_t event_group;
 
 /* Creates all tasks*/
 void create_tasks() {
@@ -47,8 +48,9 @@ void create_tasks() {
   }
 #endif
   /* Creating Cjmcu-811 sensor task*/
-  xTaskCreatePinnedToCore(vTaskCjmcu, TASK_CJMCU811_NAME, TASK_CJMCU811_STACK_SIZE, &ms,
-                          TASK_GYML_PRIORITY, &xTaskCjmcu811Handle, TASK_CJMCU811_CORE);
+  xTaskCreatePinnedToCore(vTaskCjmcu, TASK_CJMCU811_NAME,
+                          TASK_CJMCU811_STACK_SIZE, &ms, TASK_GYML_PRIORITY,
+                          &xTaskCjmcu811Handle, TASK_CJMCU811_CORE);
 #ifdef TASK_DEBUG
   if (xTaskCjmcu811Handle == NULL) {
     ESP_LOGI(::TAG, "Failed to Create CJMCU TASK");
@@ -63,10 +65,7 @@ void create_tasks() {
 }
 
 /* Creates all event_groups*/
-void create_event_groups() {}
+void create_event_groups() { event_group = xEventGroupCreate(); }
 
 /* Creates mutexes*/
 void create_mutex() { mutex = xSemaphoreCreateMutex(); }
-
-/* Creates counting semaphores*/
-void create_semphr() { sensor_read_semphr = xSemaphoreCreateCounting(3U, 0U); }

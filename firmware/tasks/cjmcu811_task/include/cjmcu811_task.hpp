@@ -5,6 +5,7 @@
 #include <freertos/queue.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
+#include <freertos/event_groups.h>
 #include "../../devices/cjmcu-811/include/cjmcu-811.hpp"
 
 /* Task properties */
@@ -16,6 +17,6 @@
 
 extern TaskHandle_t xTaskCjmcu811Handle;
 extern SemaphoreHandle_t mutex;
-extern SemaphoreHandle_t sensor_read_semphr;
+extern EventGroupHandle_t event_group;
 
 void vTaskCjmcu(void *params);

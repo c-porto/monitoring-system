@@ -1,4 +1,5 @@
 #pragma once
+#include "../../clockcalendar/include/clockcalendar.hpp"
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -20,10 +21,12 @@ typedef enum {
   CJMCU811_ID,
 } sensor_id;
 
-/* Measure Struct responsible for keep tracking all measurements, time and
+/* Measure Class responsible for keep tracking all measurements, time and
  * errors */
-struct Measure {
-  std::chrono::year_month_day last_time_measure;
+class Measure {
+public:
+  Measure();
+  std::shared_ptr<logs::ClockCalendar> date;
   bool err{false};
   sensor_id last_id;
   temperature_t temp;
@@ -131,10 +134,10 @@ namespace logs {
 /* LogData struct that defines variables to be send to linux host */
 template <typename Tp> struct LogData {
   sensor::sensor_id id;
-  std::chrono::year_month_day date;
+  std::string timestamp;
   Tp measure;
-  LogData(sensor::sensor_id ID, std::chrono::year_month_day data, Tp sample)
-      : id{ID}, date{data}, measure{sample} {};
+  LogData(sensor::sensor_id ID, std::string data, Tp sample)
+      : id{ID}, timestamp{data}, measure{sample} {};
   friend std::ostream &operator<<(std::ostream &os, LogData<double> const &log);
 };
 
@@ -150,24 +153,24 @@ const std::unordered_map<sensor::sensor_id, LogHandler> kLogConversion{
     /* Dht11 handler for single read enqueue */
     {sensor::DHT11_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> temp{sample.last_id, sample.last_time_measure,
+       logs::LogData<double> temp{sample.last_id, sample.date->GenerateTimestamp(),
                                   sample.temp};
        fila.enqueue(temp);
-       logs::LogData<double> hm{sample.last_id, sample.last_time_measure,
+       logs::LogData<double> hm{sample.last_id, sample.date->GenerateTimestamp(),
                                 sample.hm};
        fila.enqueue(hm);
      }},
     /* Gyml8511 handler for single read enqueue */
     {sensor::GYML8511_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> uv{sample.last_id, sample.last_time_measure,
+       logs::LogData<double> uv{sample.last_id, sample.date->GenerateTimestamp(),
                                 sample.uv};
        fila.enqueue(uv);
      }},
     /* Cjmcu811  handler for single read enqueue */
     {sensor::CJMCU811_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> air{sample.last_id, sample.last_time_measure,
+       logs::LogData<double> air{sample.last_id, sample.date->GenerateTimestamp(),
                                  sample.air};
        fila.enqueue(air);
      }}};

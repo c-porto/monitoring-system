@@ -6,6 +6,7 @@
 #include <freertos/queue.h>
 #include <freertos/semphr.h>
 #include <freertos/task.h>
+#include <freertos/event_groups.h>
 
 /* Task properties */
 #define TASK_GYML_NAME "TaskGyml"
@@ -16,6 +17,6 @@
 
 extern TaskHandle_t xTaskGymlHandle;
 extern SemaphoreHandle_t mutex;
-extern SemaphoreHandle_t sensor_read_semphr;
+extern EventGroupHandle_t event_group;
 
 void vTaskGyml(void *params);

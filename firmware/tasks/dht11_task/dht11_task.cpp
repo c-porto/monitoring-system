@@ -1,4 +1,5 @@
 #include "include/dht11_task.hpp"
+#include "../task_api/include/task_api.hpp"
 #include "../../devices/utils/include/utils.hpp"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
@@ -54,9 +55,12 @@ void vTaskDht(void *params) {
       /* Mutex unlock to prevent deadlock*/
       xSemaphoreGive(mutex);
     }
-    /* Semaphore Give */
-    xSemaphoreGive(sensor_read_semphr);
     /* Event Group */
+    xEventGroupSetBits(
+        event_group,
+        DHT_READ_EVENT |
+            DHT_READ_EVENT_HTTP); /* Setting event bits related to sensor
+                                          reading*/
     /* Yields back to scheduler */
     vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_DHT_PERIOD_MS));
   }
