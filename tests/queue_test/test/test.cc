@@ -7,10 +7,10 @@
 #include <string>
 
 /* Testing C++ macros*/
-#define ARRAY_MOVE(size)                                        \
-  static_assert(size == 10, "Expected size 10 array");          \
-  inline auto array_move(std::array<std::string, size> &&arr) { \
-    return std::array<std::string, size>{arr};                  \
+#define ARRAY_MOVE(size)                                                       \
+  static_assert(size == 10, "Expected size 10 array");                         \
+  inline auto array_move(std::array<std::string, size> &&arr) {                \
+    return std::array<std::string, size>{arr};                                 \
   }
 
 /* Static Global Variables*/
@@ -18,7 +18,7 @@ namespace {
 std::array<std::string, 10> nodes = {"Node 1", "Node 2", "Node 3", "Node 4",
                                      "Node 5", "Node 6", "Node 7", "Node 8",
                                      "Node 9", "Node 10"};
-}  // namespace
+} // namespace
 
 /* Testing Constructor of the Queue */
 TEST(QueueTest, ConstructorTest) {
@@ -79,19 +79,41 @@ TEST(QueueTest, CircularTest) {
 TEST(QueueTest, MaxCapacityTest) {
   ds::Queue<std::string> fila{1};
   ds::Queue<std::string> queue{5};
-  for (std::size_t i{0}; i < 1000000; ++i) fila.enqueue(nodes[0]);
+  for (std::size_t i{0}; i < 1000000; ++i)
+    fila.enqueue(nodes[0]);
   EXPECT_EQ(fila.lenght(), 1) << "Error in Unitary queue";
   for (std::size_t i{0}; i < 100000; ++i)
-    for (const auto &n : nodes) queue.enqueue(n);
+    for (const auto &n : nodes)
+      queue.enqueue(n);
   EXPECT_EQ(queue.lenght(), 5) << "Error in non unitary queue";
 }
 
-/* ARRAY_MOVE(10) */
+/* Testing Automatic Release of Memory */
+TEST(QueueMemoryTest, AutomaticReleaseTest) {
+  ds::Queue<int> q{5};
+  for (int i{0}; i < 4; ++i) {
+    q.enqueue(i);
+  }
+  auto t = q.head();
+  auto tail = q.tail_next();
+  EXPECT_EQ(t, tail);
+  auto wk = q.head_shr();
+  auto first = q.dequeue();
+  tail = q.tail_next();
+  if (tail == t)
+    EXPECT_EQ(0, 1) << "Tail is not being rearranged properly";
+  EXPECT_EQ(first, 0) << "Error in Dequeuing";
+  EXPECT_EQ(t->value, 0)
+      << "Dequeued Node value should've being different than 0";
+  if (wk.lock())
+    EXPECT_EQ(0, 1)
+        << "Dequeued Node should've been deleted (Weak Pointer Test)";
+}
 
-/*
+ARRAY_MOVE(10)
+
 TEST(Macros, FunctionConstructTest) {
   auto A = array_move(std::move(nodes));
   EXPECT_EQ(A.size(), 10) << "Error in array size move";
   EXPECT_EQ(A[0], "Node 1") << "Error in value move";
 }
-*/
