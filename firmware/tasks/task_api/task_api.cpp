@@ -90,6 +90,16 @@ void create_tasks() {
     ESP_LOGI(::TAG, "Failed to Create Warning TASK");
   }
 #endif
+  /* Creating Queue manipulation task*/
+#if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
+  xTaskCreatePinnedToCore(vTaskUart, TASK_UART_NAME, TASK_UART_STACK_SIZE, NULL,
+                          TASK_UART_PRIORITY, &xTaskUartHandle, TASK_UART_CORE);
+#endif  // For embedded c++ project
+#ifdef TASK_DEBUG
+  if (xTaskUartHandle == NULL) {
+    ESP_LOGI(::TAG, "Failed to Create Queue TASK");
+  }
+#endif
 }
 
 /* Creates all event_groups*/

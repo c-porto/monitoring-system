@@ -48,7 +48,7 @@ void vTaskWarning(void *params) {
     /* Event Waiting */
     xEventGroupWaitBits(
         event_group, DHT_READ_EVENT | GYML8511_READ_EVENT | CJMCU811_READ_EVENT,
-        pdTRUE, pdFALSE, portMAX_DELAY);
+        pdFALSE, pdFALSE, portMAX_DELAY);
 
     if (!is_env_ok) {
       /* Turn Buzzer On*/

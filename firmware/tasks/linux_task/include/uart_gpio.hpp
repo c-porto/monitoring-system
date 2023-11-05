@@ -6,6 +6,10 @@
 #include "hal/gpio_types.h"
 #include "hal/ledc_types.h"
 
+#define GPIO_OUTPUT_SEL(PIN) (1ULL << (PIN))
+#define UART_PORT UART_NUM_2
+#define UART_BUFFER_SIZE 1024
+
 enum class BuzzerState {
   ON,
   OFF,
@@ -27,7 +31,7 @@ class Buzzer final {
   auto get_speed_mode() const { return speed_mode_; }
   bool buzzer_toggle(BuzzerState);
   bool buzzer_init();
-  [[nodiscard]] auto is_buzzer_on() const { return is_on_; }
+  [[nodiscard]] bool is_buzzer_on() const { return is_on_; }
   Buzzer() {
     channel_ = LEDC_CHANNEL_0;
     timer_ = LEDC_TIMER_0;
@@ -53,7 +57,5 @@ class Buzzer final {
   bool is_on_{false};
 };
 
-#define GPIO_OUTPUT_SEL(PIN) (1ULL << (PIN))
-
 bool gpio_led_init();
-bool host_uart_init();
+QueueHandle_t host_uart_init();
