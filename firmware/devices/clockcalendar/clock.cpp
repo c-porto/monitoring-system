@@ -1,4 +1,5 @@
 #include "include/clock.hpp"
+
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -7,8 +8,7 @@
 #include <string>
 
 namespace logs {
-void Clock::ClockNow(){  
-
+void Clock::ClockNow() {
   auto now = std::chrono::system_clock::now();
   auto timer = std::chrono::system_clock::to_time_t(now);
   std::tm bt = *std::localtime(&timer);

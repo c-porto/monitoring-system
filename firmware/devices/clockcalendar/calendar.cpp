@@ -1,4 +1,5 @@
 #include "include/calendar.hpp"
+
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -8,7 +9,6 @@
 
 namespace logs {
 void Calendar::CalendarNow() {
-
   auto now = std::chrono::system_clock::now();
   auto timer = std::chrono::system_clock::to_time_t(now);
   std::tm bt = *std::localtime(&timer);
@@ -24,4 +24,4 @@ void Calendar::CalendarNow() {
   day_ = std::stoi(day.str());
   year_ = std::stoi(year.str());
 }
-} // namespace logs
+}  // namespace logs

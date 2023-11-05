@@ -1,4 +1,5 @@
 #include "include/cjmcu-811.hpp"
+
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
@@ -27,8 +28,7 @@ i2c_cmd_handle_t cmd;
 bool init_ccs811() {
   const uint8_t app_start = 0;
 
-  if (ccs811_read_byte(CCS811_REG_HW_ID) != 0x81)
-    return false;
+  if (ccs811_read_byte(CCS811_REG_HW_ID) != 0x81) return false;
 
   ccs811_write_byte(CCS811_REG_APP_START, app_start, 0);
 
@@ -38,7 +38,7 @@ bool init_ccs811() {
   const uint8_t mode = CCS811_MODE << 4;
   ccs811_write_byte(
       CCS811_REG_MEAS_MODE, mode,
-      8); // Put 'No data' (0) in APP_START register for init sensor
+      8);  // Put 'No data' (0) in APP_START register for init sensor
   vTaskDelay(100 / portTICK_PERIOD_MS);
 
   return true;
@@ -47,10 +47,10 @@ bool init_ccs811() {
 float get_ccs811(int a) {
   ccs811_data d = ccs811_sensor_data(CCS811_REG_ALG_RESULT_DATA);
   switch (a) {
-  case 0: /* CO2 */
-    return d.dataCO2;
-  case 1: /* VOC */
-    return d.dataVOC;
+    case 0: /* CO2 */
+      return d.dataCO2;
+    case 1: /* VOC */
+      return d.dataVOC;
   }
   return 0.0;
 }
@@ -59,12 +59,12 @@ ccs811_data ccs811_sensor_data(uint8_t addr) {
   ccs811_data data;
   uint8_t dataCO2_HB, dataCO2_LB, dataVOC_HB, dataVOC_LB;
 
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create(); // Command link Create
-  i2c_master_start(cmd);                        // Start bit
+  i2c_cmd_handle_t cmd = i2c_cmd_link_create();  // Command link Create
+  i2c_master_start(cmd);                         // Start bit
   i2c_master_write_byte(cmd, CCS811_I2C_ADDRESS_1 << 1 | WRITE_BIT,
-                        ACK_CHECK_EN); // Write an single byte address
+                        ACK_CHECK_EN);  // Write an single byte address
   i2c_master_write_byte(cmd, addr, ACK_CHECK_EN);
-  i2c_master_stop(cmd); // Stop bit
+  i2c_master_stop(cmd);  // Stop bit
   i2c_master_cmd_begin((i2c_port_t)I2C_PORT_NUMBER, cmd, TICK_DELAY);
   i2c_cmd_link_delete(cmd);
   vTaskDelay(pdMS_TO_TICKS(30));
@@ -106,12 +106,12 @@ bool ccs811_write_byte(uint8_t reg_addr, const uint8_t data,
 uint8_t ccs811_read_byte(uint8_t addr) {
   uint8_t data;
 
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create(); // Command link Create
-  i2c_master_start(cmd);                        // Start bit
+  i2c_cmd_handle_t cmd = i2c_cmd_link_create();  // Command link Create
+  i2c_master_start(cmd);                         // Start bit
   i2c_master_write_byte(cmd, CCS811_I2C_ADDRESS_1 << 1 | WRITE_BIT,
-                        ACK_CHECK_EN); // Write an single byte address
+                        ACK_CHECK_EN);  // Write an single byte address
   i2c_master_write_byte(cmd, addr, ACK_CHECK_EN);
-  i2c_master_stop(cmd); // Stop bit
+  i2c_master_stop(cmd);  // Stop bit
   i2c_master_cmd_begin((i2c_port_t)I2C_PORT_NUMBER, cmd, TICK_DELAY);
   i2c_cmd_link_delete(cmd);
   vTaskDelay(pdMS_TO_TICKS(30));
@@ -127,19 +127,20 @@ uint8_t ccs811_read_byte(uint8_t addr) {
   return data;
 }
 }
-} // namespace external_lib
-} // namespace __cjmcu811
+}  // namespace external_lib
+}  // namespace __cjmcu811
 
 void Cjmcu811::init() {
+  init_i2c();
   if (!(__cjmcu811::external_lib::init_ccs811())) {
     ESP_LOGI(::TAG, "Error Initializing Cjmcu811");
   }
 #ifdef DEBUG
   vTaskDelay(pdMS_TO_TICKS(1000U));
-#endif // DEBUG
+#endif  // DEBUG
 #ifndef DEBUG
   vTaskDelay(pdMS_TO_TICKS(this->kSensorBurnInTime_));
-#endif // DEBUG
+#endif  // DEBUG
 }
 void Cjmcu811::read(MeasureP ms) {
   ESP_LOGI(::TAG, "Trying to read Cjmcu811");
@@ -147,8 +148,9 @@ void Cjmcu811::read(MeasureP ms) {
   ESP_LOGI(::TAG, "Measure was %f ppm", (float)C02_ppm_);
   ms->air = C02_ppm_;
   ms->err = false;
+  ms->last_id = this->id;
   ms->date->ClockNow();
   ms->date->CalendarNow();
 }
 
-} // namespace sensor
+}  // namespace sensor

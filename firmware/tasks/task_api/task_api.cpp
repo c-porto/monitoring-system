@@ -1,8 +1,9 @@
 #include "include/task_api.hpp"
+
 #include "../cjmcu811_task/include/cjmcu811_task.hpp"
 #include "../gyml8511_task/include/gyml8511_task.hpp"
 #include "../linux_task/include/linux_task.hpp"
-
+#include "../warning_task/include/warning_task.hpp"
 #include "dht11.hpp"
 #include "dht11_task.hpp"
 #include "freertos/FreeRTOS.h"
@@ -22,7 +23,7 @@ namespace {
 const char *TAG = "TASK";
 /* Global measurement variable*/
 sensor::Measure ms{};
-} // namespace
+}  // namespace
 
 /* Global mutex to protect ms variable*/
 SemaphoreHandle_t mutex;
@@ -61,7 +62,34 @@ void create_tasks() {
   xTaskCreatePinnedToCore(vTaskLinux, TASK_LINUX_NAME, TASK_LINUX_STACK_SIZE,
                           &ms, TASK_LINUX_PRIORITY, &xTaskLinuxHandle,
                           TASK_LINUX_CORE);
-#endif // For embedded c++ project
+#endif  // For embedded c++ project
+#ifdef TASK_DEBUG
+  if (xTaskLinuxHandle == NULL) {
+    ESP_LOGI(::TAG, "Failed to Create Linux TASK");
+  }
+#endif
+  /* Creating Queue manipulation task*/
+#if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
+  xTaskCreatePinnedToCore(vTaskQueue, TASK_QUEUE_NAME, TASK_QUEUE_STACK_SIZE,
+                          &ms, TASK_QUEUE_PRIORITY, &xTaskQueueHandle,
+                          TASK_QUEUE_CORE);
+#endif  // For embedded c++ project
+#ifdef TASK_DEBUG
+  if (xTaskQueueHandle == NULL) {
+    ESP_LOGI(::TAG, "Failed to Create Queue TASK");
+  }
+#endif
+  /* Creating Buzzer and LED's Warning Task*/
+#if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
+  xTaskCreatePinnedToCore(vTaskWarning, TASK_WARNING_NAME,
+                          TASK_WARNING_STACK_SIZE, &ms, TASK_WARNING_PRIORITY,
+                          &xTaskWarningHandle, TASK_WARNING_CORE);
+#endif  // For embedded c++ project
+#ifdef TASK_DEBUG
+  if (xTaskWarningHandle == NULL) {
+    ESP_LOGI(::TAG, "Failed to Create Warning TASK");
+  }
+#endif
 }
 
 /* Creates all event_groups*/

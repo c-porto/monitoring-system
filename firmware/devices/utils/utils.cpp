@@ -1,6 +1,8 @@
 #include "include/utils.hpp"
+
 #include <memory>
 #include <ostream>
+#include <string>
 
 std::ostream &operator<<(std::ostream &os, sensor::Measure const &ms) {
   os << "Temperature Reading: " << ms.temp << std::endl;

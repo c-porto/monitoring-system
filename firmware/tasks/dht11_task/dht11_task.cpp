@@ -1,11 +1,13 @@
 #include "include/dht11_task.hpp"
-#include "../task_api/include/task_api.hpp"
+
+#include <cstddef>
+
 #include "../../devices/utils/include/utils.hpp"
+#include "../task_api/include/task_api.hpp"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
-#include <cstddef>
 
 /* Task handle*/
 TaskHandle_t xTaskDhtHandle;
@@ -18,7 +20,7 @@ const char *TAG = "DHT Task";
 constexpr std::size_t kDhtPin{32};
 /* Dht11 sensor instance*/
 sensor::Dht11 dht_sensor{kDhtPin};
-} // namespace
+}  // namespace
 
 /* Dht11 task*/
 void vTaskDht(void *params) {
@@ -58,9 +60,8 @@ void vTaskDht(void *params) {
     /* Event Group */
     xEventGroupSetBits(
         event_group,
-        DHT_READ_EVENT |
-            DHT_READ_EVENT_HTTP); /* Setting event bits related to sensor
-                                          reading*/
+        DHT_READ_EVENT | DHT_READ_EVENT_HTTP); /* Setting event bits related
+                                                  to sensor reading*/
     /* Yields back to scheduler */
     vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_DHT_PERIOD_MS));
   }

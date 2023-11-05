@@ -1,10 +1,12 @@
 #pragma once
-#include "../../clockcalendar/include/clockcalendar.hpp"
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <unordered_map>
+
+#include "../../clockcalendar/include/clockcalendar.hpp"
 
 /* Simple typedefs for convenience */
 typedef double temperature_t;
@@ -24,7 +26,7 @@ typedef enum {
 /* Measure Class responsible for keep tracking all measurements, time and
  * errors */
 class Measure {
-public:
+ public:
   Measure();
   std::shared_ptr<logs::ClockCalendar> date;
   bool err{false};
@@ -42,7 +44,7 @@ using MeasureP = Measure *;
 
 /* Abstract Parent class for all sensors*/
 class Sensor {
-public:
+ public:
   sensor_id id;
   virtual void read(MeasureP data) = 0;
   virtual void init() = 0;
@@ -54,30 +56,32 @@ using SensorP = Sensor *;
 /* Standard API for updating global measurements instance for individual sensors
  */
 class SensorAPI {
-public:
+ public:
   SensorAPI(SensorP sensor, MeasureP data);
   void update_data();
 
-private:
+ private:
   SensorP sensor_{nullptr};
   MeasureP data_{nullptr};
 };
 
-} // namespace sensor
+}  // namespace sensor
 
 /* Namespace for data structures */
 namespace ds {
 /* Node struct for linked list*/
-template <typename Tp> struct Node {
+template <typename Tp>
+struct Node {
   Tp value;
   std::shared_ptr<Node> next;
   Node(Tp item) : value{item}, next{nullptr} {}
 };
 /* Queue class implemented to be a static capacity circular linked list */
-template <typename Tp> class Queue {
+template <typename Tp>
+class Queue {
   using NodeP = std::shared_ptr<Node<Tp>>;
 
-public:
+ public:
   Queue(std::size_t capacity) : capacity_{capacity} {}
   auto enqueue(Tp item) -> void;
   auto dequeue() -> Tp;
@@ -86,7 +90,7 @@ public:
   auto capacity() const -> std::size_t { return capacity_; }
   operator bool() const { return lenght_ != 0; }
 
-private:
+ private:
   std::size_t capacity_;
   std::size_t lenght_{0};
   NodeP head_{nullptr};
@@ -94,7 +98,8 @@ private:
 };
 
 /* Enqueue itens in the back of the queue */
-template <typename Tp> auto Queue<Tp>::enqueue(Tp item) -> void {
+template <typename Tp>
+auto Queue<Tp>::enqueue(Tp item) -> void {
   if (lenght_ < capacity_) {
     if (tail_ == nullptr) {
       tail_ = std::make_shared<Node<Tp>>(item);
@@ -115,7 +120,8 @@ template <typename Tp> auto Queue<Tp>::enqueue(Tp item) -> void {
 }
 
 /* Dequeue itens from the front of the queue */
-template <typename Tp> auto Queue<Tp>::dequeue() -> Tp {
+template <typename Tp>
+auto Queue<Tp>::dequeue() -> Tp {
   --lenght_;
   Tp value = head_->value;
   head_ = head_->next;
@@ -127,21 +133,60 @@ template <typename Tp> auto Queue<Tp>::dequeue() -> Tp {
   return value;
 }
 
-} // namespace ds
+}  // namespace ds
 
 /* Namespace for log related stuff */
 namespace logs {
+
+/* Enum to define which measurement was stored by dht11*/
+enum class DhtReading {
+  TEMPERATURE_READ,
+  HUMIDITY_READ,
+};
+
 /* LogData struct that defines variables to be send to linux host */
-template <typename Tp> struct LogData {
+template <typename Tp>
+struct LogData {
   sensor::sensor_id id;
   std::string timestamp;
   Tp measure;
+  DhtReading dht_type;
   LogData(sensor::sensor_id ID, std::string data, Tp sample)
       : id{ID}, timestamp{data}, measure{sample} {};
+  LogData(sensor::sensor_id ID, std::string data, Tp sample, DhtReading ms_type)
+      : id{ID}, timestamp{data}, measure{sample}, dht_type{ms_type} {};
   friend std::ostream &operator<<(std::ostream &os, LogData<double> const &log);
+  std::string log_to_string() const;
 };
+template <typename Tp>
+std::string logs::LogData<Tp>::log_to_string() const {
+  std::string sensor_id;
+  std::string measurement;
+  switch (this->id) {
+    case sensor::CJMCU811_ID:
+      sensor_id = "[CJMCU811]";
+      measurement = std::to_string(this->measure) + " ppm";
+      break;
+    case sensor::GYML8511_ID:
+      sensor_id = "[GYML8511]";
+      measurement = std::to_string(this->measure) + " mW/cm^2";
+      break;
+    case sensor::DHT11_ID:
+      sensor_id = "[DHT11]";
+      switch (this->dht_type) {
+        case logs::DhtReading::TEMPERATURE_READ:
+          measurement = std::to_string(this->measure) + " °C";
+          break;
+        case logs::DhtReading::HUMIDITY_READ:
+          measurement = std::to_string(this->measure) + " %";
+          break;
+      }
+      break;
+  }
+  return sensor_id + this->timestamp + "-" + "[" + measurement + "]";
+}
 
-} // namespace logs
+}  // namespace logs
 
 /* Used for naming convenience */
 using LogHandler =
@@ -153,24 +198,26 @@ const std::unordered_map<sensor::sensor_id, LogHandler> kLogConversion{
     /* Dht11 handler for single read enqueue */
     {sensor::DHT11_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> temp{sample.last_id, sample.date->GenerateTimestamp(),
-                                  sample.temp};
+       logs::LogData<double> temp{sample.last_id,
+                                  sample.date->GenerateTimestamp(), sample.temp,
+                                  logs::DhtReading::TEMPERATURE_READ};
        fila.enqueue(temp);
-       logs::LogData<double> hm{sample.last_id, sample.date->GenerateTimestamp(),
-                                sample.hm};
+       logs::LogData<double> hm{sample.last_id,
+                                sample.date->GenerateTimestamp(), sample.hm,
+                                logs::DhtReading::HUMIDITY_READ};
        fila.enqueue(hm);
      }},
     /* Gyml8511 handler for single read enqueue */
     {sensor::GYML8511_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> uv{sample.last_id, sample.date->GenerateTimestamp(),
-                                sample.uv};
+       logs::LogData<double> uv{sample.last_id,
+                                sample.date->GenerateTimestamp(), sample.uv};
        fila.enqueue(uv);
      }},
     /* Cjmcu811  handler for single read enqueue */
     {sensor::CJMCU811_ID,
      [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> air{sample.last_id, sample.date->GenerateTimestamp(),
-                                 sample.air};
+       logs::LogData<double> air{sample.last_id,
+                                 sample.date->GenerateTimestamp(), sample.air};
        fila.enqueue(air);
      }}};

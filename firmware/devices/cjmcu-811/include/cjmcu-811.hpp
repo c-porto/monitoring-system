@@ -15,7 +15,7 @@ extern "C" {
 
 #define I2C_PORT_NUMBER 0
 
-#define CCS811_I2C_ADDRESS_2                                                   \
+#define CCS811_I2C_ADDRESS_2 \
   0x5A /* Default Device Address/Identifier for CCS811*/
 #define CCS811_I2C_ADDRESS_1 0x5B
 #define WRITE_BIT I2C_MASTER_WRITE /*!< I2C master write */
@@ -48,18 +48,18 @@ extern "C" {
 #define CCS811_REG_SW_RESET 0xff
 
 // status register bits
-#define CCS811_STATUS_ERROR 0x01     // error, details in CCS811_REG_ERROR
-#define CCS811_STATUS_DATA_RDY 0x08  // new data sample in ALG_RESULT_DATA
-#define CCS811_STATUS_APP_VALID 0x10 // valid application firmware loaded
-#define CCS811_STATUS_FW_MODE 0x80   // firmware is in application mode
+#define CCS811_STATUS_ERROR 0x01      // error, details in CCS811_REG_ERROR
+#define CCS811_STATUS_DATA_RDY 0x08   // new data sample in ALG_RESULT_DATA
+#define CCS811_STATUS_APP_VALID 0x10  // valid application firmware loaded
+#define CCS811_STATUS_FW_MODE 0x80    // firmware is in application mode
 
 // error register bits
-#define CCS811_ERR_WRITE_REG_INV 0x01  // invalid register address on write
-#define CCS811_ERR_READ_REG_INV 0x02   // invalid register address on read
-#define CCS811_ERR_MEASMODE_INV 0x04   // invalid requested measurement mode
-#define CCS811_ERR_MAX_RESISTANCE 0x08 // maximum sensor resistance exceeded
-#define CCS811_ERR_HEATER_FAULT 0x10   // heater current not in range
-#define CCS811_ERR_HEATER_SUPPLY 0x20  // heater voltage not applied correctly
+#define CCS811_ERR_WRITE_REG_INV 0x01   // invalid register address on write
+#define CCS811_ERR_READ_REG_INV 0x02    // invalid register address on read
+#define CCS811_ERR_MEASMODE_INV 0x04    // invalid requested measurement mode
+#define CCS811_ERR_MAX_RESISTANCE 0x08  // maximum sensor resistance exceeded
+#define CCS811_ERR_HEATER_FAULT 0x10    // heater current not in range
+#define CCS811_ERR_HEATER_SUPPLY 0x20   // heater voltage not applied correctly
 
 // Struct data
 typedef struct {
@@ -74,21 +74,18 @@ ccs811_data ccs811_sensor_data(uint8_t);
 bool init_ccs811();
 float get_ccs811(int);
 }
-} // namespace external_lib
-} // namespace __cjmcu811
+}  // namespace external_lib
+}  // namespace __cjmcu811
 
 class Cjmcu811 final : public Sensor {
-public:
+ public:
   Cjmcu811() { this->id = CJMCU811_ID; }
   void init() override;
   void read(MeasureP ms) override;
-  [[nodiscard]] uint32_t get_burn_in_time() const noexcept {
-    return kSensorBurnInTime_;
-  }
 
-private:
+ private:
   double C02_ppm_;
   const uint32_t kSensorBurnInTime_{1200000UL};
 };
 
-} // namespace sensor
+}  // namespace sensor

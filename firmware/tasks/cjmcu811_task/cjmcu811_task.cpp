@@ -1,4 +1,8 @@
 #include "include/cjmcu811_task.hpp"
+
+#include <../../devices/cjmcu-811/include/cjmcu-811.hpp>
+#include <cstddef>
+
 #include "../../devices/utils/include/utils.hpp"
 #include "../task_api/include/task_api.hpp"
 #include "esp_log.h"
@@ -7,8 +11,6 @@
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
-#include <../../devices/cjmcu-811/include/cjmcu-811.hpp>
-#include <cstddef>
 
 /* Task handle*/
 TaskHandle_t xTaskCjmcu811Handle;
@@ -19,7 +21,7 @@ namespace {
 const char *TAG = "Cjmcu-811 Task";
 /* Cjmcu811 sensor instance*/
 sensor::Cjmcu811 cjmcu_sensor{};
-} // namespace
+}  // namespace
 
 /* Cjmcu811 task*/
 void vTaskCjmcu(void *params) {

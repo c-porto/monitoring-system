@@ -1,11 +1,13 @@
 #include "include/gyml8511.hpp"
+
+#include <cstddef>
+
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "hal/adc_types.h"
 #include "utils.hpp"
-#include <cstddef>
 
 #define DEBUG_SENSOR
 
@@ -96,4 +98,4 @@ void Gyml8511::read(MeasureP ms) {
 #endif
 }
 
-} // namespace sensor
+}  // namespace sensor

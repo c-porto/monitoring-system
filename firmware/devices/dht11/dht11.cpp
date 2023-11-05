@@ -1,16 +1,18 @@
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
+#include <rom/ets_sys.h>
+#include <sys/_stdint.h>
+
+#include <cmath>
+#include <dht11.hpp>
+#include <gpio_cxx.hpp>
+#include <memory>
+#include <sstream>
+
 #include "../utils/include/utils.hpp"
 #include "esp_log.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
-#include <cmath>
-#include <dht11.hpp>
-#include <freertos/FreeRTOS.h>
-#include <freertos/timers.h>
-#include <gpio_cxx.hpp>
-#include <memory>
-#include <rom/ets_sys.h>
-#include <sstream>
-#include <sys/_stdint.h>
 
 #define DEBUG_SENSOR
 
@@ -64,7 +66,7 @@ void Dht11::init() {
 }
 
 Dht11::Dht11(uint32_t dht_pin) : pin_(dht_pin) {
-  id = sensor::DHT11_ID;
+  this->id = sensor::DHT11_ID;
   this->init();
 }
 
@@ -157,4 +159,4 @@ void Dht11::read(sensor::MeasureP ms) {
 
 #endif
 }
-} // namespace sensor
+}  // namespace sensor

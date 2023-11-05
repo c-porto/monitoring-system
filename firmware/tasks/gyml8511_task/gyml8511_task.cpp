@@ -1,13 +1,15 @@
 #include "include/gyml8511_task.hpp"
-#include "../task_api/include/task_api.hpp"
+
+#include <cstddef>
+
 #include "../../devices/utils/include/utils.hpp"
+#include "../task_api/include/task_api.hpp"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "gpio_cxx.hpp"
-#include <cstddef>
 
 /* Task handle*/
 TaskHandle_t xTaskGymlHandle;
@@ -18,7 +20,7 @@ namespace {
 const char *TAG = "GYML Task";
 /* Gyml sensor instance*/
 sensor::Gyml8511 gyml_sensor{};
-} // namespace
+}  // namespace
 
 /* Gyml8511 task*/
 void vTaskGyml(void *params) {
@@ -58,8 +60,8 @@ void vTaskGyml(void *params) {
     /* Event Group */
     xEventGroupSetBits(
         event_group,
-        GYML811_READ_EVENT |
-            GYML811_READ_EVENT_HTTP); /* Setting event bits related to sensor
+        GYML8511_READ_EVENT |
+            GYML8511_READ_EVENT_HTTP); /* Setting event bits related to sensor
                                           reading*/
     /* Yields back to scheduler */
     vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TASK_GYML_PERIOD_MS));

@@ -44,8 +44,8 @@ static esp_err_t i2c_master_driver_initialize(void) {
 void init_i2c() {
   i2c_driver_install(i2c_port, I2C_MODE_MASTER, I2C_MASTER_RX_BUF_DISABLE,
                      I2C_MASTER_TX_BUF_DISABLE, 0);
-  i2c_master_driver_initialize();
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-  i2c_master_start(cmd);
+  if (i2c_master_driver_initialize() != ESP_OK) {
+    ESP_LOGI("I2C EXTERNAL DRIVER", "Error Initializing i2c");
+  }
 }
 }

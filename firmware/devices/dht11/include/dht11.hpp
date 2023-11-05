@@ -1,15 +1,16 @@
 #pragma once
 
+#include <sys/_stdint.h>
+
+#include <gpio_cxx.hpp>
+#include <memory>
+
+#include "../../utils/include/utils.hpp"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-
-#include "../../utils/include/utils.hpp"
-#include "esp_log.h"
-#include <gpio_cxx.hpp>
-#include <memory>
-#include <sys/_stdint.h>
 
 #define NUMBER_OF_BITS 40U
 #define MAX_TEMP 50U
@@ -59,18 +60,18 @@ struct dht_reading {
   dht_reading(double T, double Hm);
 };
 
-} // namespace __dht11
+}  // namespace __dht11
 class Dht11 final : public Sensor {
-public:
+ public:
   Dht11(uint32_t dht_pin);
   void read(sensor::MeasureP ms) override;
   void init() override;
 
-private:
+ private:
   __dht11::dht_data raw_data_;
   idf::GPIONum pin_;
   __dht11::dht_err is_valid_data() const;
   void init_comm();
 };
 
-} // namespace sensor
+}  // namespace sensor

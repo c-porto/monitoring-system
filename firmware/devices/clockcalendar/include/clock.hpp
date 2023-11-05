@@ -2,10 +2,11 @@
 
 namespace logs {
 class Clock {
-public:
+ public:
   Clock() : hour_{0}, minute_{0}, second_{0} {}
   void ClockNow();
-protected:
+
+ protected:
   int hour_, minute_, second_;
 };
-} // namespace logs
+}  // namespace logs
