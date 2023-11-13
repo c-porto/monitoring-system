@@ -57,8 +57,9 @@ bool Buzzer::buzzer_init() {
     ESP_LOGI("BUZZER", "Failed to Pause Buzzer");
     err = true;
     this->set_buzzer_state(BuzzerState::ON);
+  } else {
+    this->set_buzzer_state(BuzzerState::OFF);
   }
-  this->set_buzzer_state(BuzzerState::OFF);
   return err;
 }
 
@@ -86,8 +87,8 @@ bool Buzzer::buzzer_toggle(BuzzerState bzs) {
 }
 
 QueueHandle_t host_uart_init() {
-  uart_port_t _port = UART_NUM_2;
-  uart_config_t _uart{
+  uart_port_t __port = UART_NUM_2;
+  uart_config_t __uart{
       .baud_rate = 115200,
       .data_bits = UART_DATA_8_BITS,
       .parity = UART_PARITY_DISABLE,
@@ -95,15 +96,15 @@ QueueHandle_t host_uart_init() {
       .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
       .source_clk = UART_SCLK_DEFAULT,
   };
-  if (uart_param_config(_port, &_uart) != ESP_OK)
+  if (uart_param_config(__port, &__uart) != ESP_OK)
     ESP_LOGI("UART", "Failed to Configure uart");
-  if (uart_set_pin(_port, GPIO_NUM_1, GPIO_NUM_3, UART_PIN_NO_CHANGE,
+  if (uart_set_pin(__port, GPIO_NUM_1, GPIO_NUM_3, UART_PIN_NO_CHANGE,
                    UART_PIN_NO_CHANGE) != ESP_OK)
     ESP_LOGI("UART", "Failed to Configure uart pins");
 
   QueueHandle_t uart_queue;
 
-  if (uart_driver_install(_port, UART_BUFFER_SIZE * 2, UART_BUFFER_SIZE * 2, 20,
+  if (uart_driver_install(__port, UART_BUFFER_SIZE * 2, UART_BUFFER_SIZE * 2, 20,
                           &uart_queue, 0) != ESP_OK)
     ESP_LOGI("UART", "Failed to Install uart driver");
 

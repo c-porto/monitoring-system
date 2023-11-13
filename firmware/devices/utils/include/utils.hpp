@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "../../clockcalendar/include/clockcalendar.hpp"
+#include "../../display/include/display.hpp"
 
 /* Simple typedefs for convenience */
 typedef double temperature_t;
@@ -63,6 +64,7 @@ class SensorAPI {
  private:
   SensorP sensor_{nullptr};
   MeasureP data_{nullptr};
+  Display display_;
 };
 
 }  // namespace sensor
@@ -159,7 +161,7 @@ struct LogData {
   std::string log_to_string() const;
 };
 template <typename Tp>
-std::string logs::LogData<Tp>::log_to_string() const {
+std::string LogData<Tp>::log_to_string() const {
   std::string sensor_id;
   std::string measurement;
   switch (this->id) {

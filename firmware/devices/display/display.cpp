@@ -1,9 +1,7 @@
-#include <utils.hpp>
+#include "include/display.hpp"
 
-class Display {
-public:
-  Display() = default;
-  void init() const;
-  void display_str(const char *) const;
-  friend Display &operator<<(Display &ds, sensor::MeasureP ms);
-};
+namespace sensor {
+void init() {}
+void display_str(const char *) {}
+Display &operator<<(Display &ds, sensor::MeasureP ms) { return ds; }
+} // namespace sensor

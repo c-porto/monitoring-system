@@ -45,11 +45,8 @@ void vTaskWarning(void *params) {
 
   /* Main loop */
   while (true) {
-    /* Event Waiting */
-    xEventGroupWaitBits(
-        event_group, DHT_READ_EVENT | GYML8511_READ_EVENT | CJMCU811_READ_EVENT,
-        pdFALSE, pdFALSE, portMAX_DELAY);
 
+    /* Checking Enviroment for Buzzer Activation*/
     if (!is_env_ok) {
       /* Turn Buzzer On*/
       if (bz.buzzer_toggle(BuzzerState::ON))
@@ -59,6 +56,12 @@ void vTaskWarning(void *params) {
       if (bz.buzzer_toggle(BuzzerState::OFF))
         ESP_LOGI(::TAG, "Error Chaging Buzzer State to OFF");
     }
+
+    /* Event Waiting */
+    xEventGroupWaitBits(
+        event_group, DHT_READ_EVENT | GYML8511_READ_EVENT | CJMCU811_READ_EVENT,
+        pdFALSE, pdFALSE, portMAX_DELAY);
+
     /* Mutex lock */
     if (auto p = xSemaphoreTake(mutex, pdMS_TO_TICKS(8000));
         p == pdPASS) /* Checking mutex take*/

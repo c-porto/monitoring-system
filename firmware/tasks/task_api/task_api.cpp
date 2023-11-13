@@ -50,7 +50,7 @@ void create_tasks() {
 #endif
   /* Creating Cjmcu-811 sensor task*/
   xTaskCreatePinnedToCore(vTaskCjmcu, TASK_CJMCU811_NAME,
-                          TASK_CJMCU811_STACK_SIZE, &ms, TASK_GYML_PRIORITY,
+                          TASK_CJMCU811_STACK_SIZE, &ms, TASK_CJMCU811_PRIORITY,
                           &xTaskCjmcu811Handle, TASK_CJMCU811_CORE);
 #ifdef TASK_DEBUG
   if (xTaskCjmcu811Handle == NULL) {
@@ -90,7 +90,7 @@ void create_tasks() {
     ESP_LOGI(::TAG, "Failed to Create Warning TASK");
   }
 #endif
-  /* Creating Queue manipulation task*/
+  /* Creating Uart manipulation task*/
 #if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
   xTaskCreatePinnedToCore(vTaskUart, TASK_UART_NAME, TASK_UART_STACK_SIZE, NULL,
                           TASK_UART_PRIORITY, &xTaskUartHandle, TASK_UART_CORE);

@@ -15,9 +15,14 @@ std::ostream &operator<<(std::ostream &os, sensor::Measure const &ms) {
 sensor::Measure::Measure() { date = std::make_shared<logs::ClockCalendar>(); }
 
 sensor::SensorAPI::SensorAPI(sensor::SensorP sensor, sensor::MeasureP data)
-    : sensor_{sensor}, data_{data} {};
+    : sensor_{sensor}, data_{data} {
+  display_.init();
+};
 
-void sensor::SensorAPI::update_data() { sensor_->read(data_); }
+void sensor::SensorAPI::update_data() {
+  sensor_->read(data_);
+  display_ << data_;
+}
 
 std::ostream &operator<<(std::ostream &os, logs::LogData<double> const &log) {
   os << "Sensor ID: " << log.id << std::endl;

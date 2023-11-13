@@ -7,7 +7,7 @@
 
 #define TASK_WARNING_NAME "TaskWarning"
 #define TASK_WARNING_STACK_SIZE 1024
-#define TASK_WARNING_PRIORITY 3
+#define TASK_WARNING_PRIORITY 4
 #define TASK_WARNING_CORE 1
 
 enum class Thresholds : uint32_t {

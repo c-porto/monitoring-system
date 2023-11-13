@@ -38,7 +38,7 @@ constexpr std::size_t log_lenght{100};
 /* Queue for storage and communication with linux*/
 ds::Queue<logs::LogData<double>> fila{log_lenght};
 /* Global variable to store command from host */
-HostCmd host_cmd;
+logs::HostCmd host_cmd;
 }  // namespace
 
 /* Queue Manipulation task */
@@ -102,7 +102,7 @@ void vTaskLinux(void *params) {
     /* Switch to Handle All Possible Commands from Host*/
     switch (host_cmd) {
         /* Send Total Time to Host Command */
-      case HostCmd::TOTAL_TIME:
+      case logs::HostCmd::TOTAL_TIME:
         ESP_LOGI(::TAG, "Sending Total Time to Host");
         /* Sending Total Time */
         for (std::size_t i{0}; i < 8; ++i) {
@@ -110,21 +110,22 @@ void vTaskLinux(void *params) {
           ESP_LOGI(::TAG, "Sending Total Time, iter %u", (unsigned int)i);
           uart_write_bytes(UART_PORT, (const char *)&time_tmp, 1);
         }
-        host_cmd = HostCmd::WAIT;
+        host_cmd = logs::HostCmd::WAIT;
         break;
         /* Send All Events to Host Command */
-      case HostCmd::EVENTS:
+      case logs::HostCmd::EVENTS:
         ESP_LOGI(::TAG, "Sending All Events to Host");
         while (fila) {
+          /* Getting LogData in String Format */
           std::string log_msg = fila.dequeue().log_to_string();
           ESP_LOGI(::TAG, "Sending Event Registered in Logs");
           uart_write_bytes(UART_PORT, log_msg.c_str(),
                            std::strlen(log_msg.c_str()));
         }
-        host_cmd = HostCmd::WAIT;
+        host_cmd = logs::HostCmd::WAIT;
         break;
         /* Waiting for new Commands */
-      case HostCmd::WAIT:
+      case logs::HostCmd::WAIT:
         ESP_LOGI(::TAG, "Waiting Commands from Host");
         break;
     }
@@ -156,13 +157,13 @@ void vTaskUart(void *params) {
           uart_read_bytes(UART_PORT, buffer, event.size, portMAX_DELAY);
           /* Checking Event Log Command from Host */
           if ((unsigned char)buffer[0] == 'L') {
-            host_cmd = HostCmd::EVENTS;
+            host_cmd = logs::HostCmd::EVENTS;
             xEventGroupSetBits(
                 event_group,
                 HOST_CMD_EVENT); /* Unblocking Linux Communication Task*/
             /* Checking Total Time Command from Host */
           } else if ((unsigned char)buffer[0] == 'T') {
-            host_cmd = HostCmd::TOTAL_TIME;
+            host_cmd = logs::HostCmd::TOTAL_TIME;
             xEventGroupSetBits(
                 event_group,
                 HOST_CMD_EVENT); /* Unblocking Linux Communication Task*/
@@ -178,11 +179,12 @@ void vTaskUart(void *params) {
           /* All Other Uart Events are Irrelevant to Application */
         default:
           ESP_LOGI(::TAG, "uart event type: %d", event.type);
-          host_cmd = HostCmd::WAIT;
+          host_cmd = logs::HostCmd::WAIT;
       }
     }
   }
   /* Task Should Never Reach Here */
+  delete[] buffer;
   ESP_LOGI(::TAG, "Deleting Uart Task");
   vTaskDelete(NULL);
 }
