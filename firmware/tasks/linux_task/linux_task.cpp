@@ -123,10 +123,12 @@ void vTaskLinux(void *params) {
       ESP_LOGI(::TAG, "Sending All Events to Host");
       uart_write_bytes(UART_PORT, "Sending Events",
                        std::strlen("Sending Events"));
+      /* While loop to send each event in the queue, one each iteration */
       while (fila) {
-        /* Getting LogData in String Format */
+        /* Getting LogData event in String Format */
         auto log_msg = fila.dequeue().log_to_string();
         ESP_LOGI(::TAG, "Sending Event Registered in Logs");
+        /* Sending event to host by uart */
         uart_write_bytes(UART_PORT, log_msg.c_str(), log_msg.length());
       }
       host_cmd = logs::HostCmd::WAIT;
@@ -147,7 +149,7 @@ void vTaskUart(void *params) {
   /* Used for logging*/
   ESP_LOGI(::TAG, "Creating Uart Task");
   /* Queue Handle with uart events */
-  auto event_queue = host_uart_init();
+  auto event_queue = host_uart_init(); /* Also initializes uart port*/
   /* Uart Event buffer*/
   uart_event_t event;
   /* Buffer for received messages */

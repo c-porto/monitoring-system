@@ -36,8 +36,10 @@ void vTaskCjmcu(void *params) {
   sensor::SensorAPI sensor{&cjmcu_sensor, measurement, &display};
   /* Used for logging*/
   ESP_LOGI(::TAG, "Initializing Sensor");
-  /* Initializing cjmcu sensor*/
+  /* Initializing cjmcu sensor, this operation might throw, hence the try-catch*/
   try {
+    /* Mutex lock is necessary because the display is using the same i2c bus,
+     * therefore its possible to fail due to concurrency */
     xSemaphoreTake(mutex, portMAX_DELAY);
     cjmcu_sensor.init(); /* This initialization can take as much as 20 minutes
                             for accurate readings*/

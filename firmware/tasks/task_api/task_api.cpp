@@ -19,8 +19,7 @@
 #define TASK_DEBUG
 // #undef TASK_DEBUG
 
-
-/* Global mutex to protect ms variable*/
+/* Global mutex to protect measurament global variable and i2c bus */
 SemaphoreHandle_t mutex;
 /* Global event group handle to provide event syncronization */
 EventGroupHandle_t event_group;
@@ -36,9 +35,9 @@ void create_tasks() {
                           TASK_GYML_PRIORITY, &xTaskGymlHandle, TASK_GYML_CORE);
   vTaskDelay(pdMS_TO_TICKS(500));
   /* Creating Cjmcu-811 sensor task*/
-  xTaskCreatePinnedToCore(vTaskCjmcu, TASK_CJMCU811_NAME,
-                          TASK_CJMCU811_STACK_SIZE, NULL, TASK_CJMCU811_PRIORITY,
-                          &xTaskCjmcu811Handle, TASK_CJMCU811_CORE);
+  xTaskCreatePinnedToCore(
+      vTaskCjmcu, TASK_CJMCU811_NAME, TASK_CJMCU811_STACK_SIZE, NULL,
+      TASK_CJMCU811_PRIORITY, &xTaskCjmcu811Handle, TASK_CJMCU811_CORE);
   /* Creating Linux communication task*/
   vTaskDelay(pdMS_TO_TICKS(500));
 #if defined(EMBEDDED_CPP) && (EMBEDDED_CPP == 1)
@@ -68,10 +67,10 @@ void create_tasks() {
 #endif // For embedded c++ project
 }
 
-/* Creates all event_groups*/
+/* Creates event_group */
 void create_event_groups() { event_group = xEventGroupCreate(); }
 
-/* Creates mutexes*/
+/* Creates mutex */
 void create_mutex() {
   mutex = xSemaphoreCreateMutex();
   xSemaphoreGive(mutex);

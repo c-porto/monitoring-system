@@ -25,6 +25,7 @@ sensor::Gyml8511 gyml_sensor{};
 
 /* Gyml8511 task*/
 void vTaskGyml(void *params) {
+  /* Trying to initialize gyml_sensor, this operation might throw, hence the try-catch */
   try {
     gyml_sensor.init();
   } catch (std::exception &ex) {

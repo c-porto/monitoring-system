@@ -164,6 +164,9 @@ struct LogData {
   friend std::ostream &operator<<(std::ostream &os, LogData<double> const &log);
   std::string log_to_string() const;
 };
+
+/* Member function used to convert each event in a string format,
+ * then the string is send to host via uart */
 template <typename Tp>
 std::string LogData<Tp>::log_to_string() const {
   std::string sensor_id;

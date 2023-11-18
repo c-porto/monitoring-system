@@ -9,6 +9,7 @@
 #include <thread>
 
 #include "cjmcu-811.hpp"
+#include "display.hpp"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/portmacro.h"
@@ -18,7 +19,6 @@
 #include "hal/gpio_types.h"
 #include "uart_gpio.hpp"
 #include "utils.hpp"
-#include "display.hpp"
 
 /* Defining the app_main function*/
 extern "C" {
@@ -59,7 +59,7 @@ void set_system_time(int year, int month, int day, int hour, int min, int sec) {
 extern "C" void app_main(void) {
   /* Changing Main task priority to initialize all other tasks first */
   vTaskPrioritySet(NULL, 10);
-  /*Setting system time to today */
+  /* Setting system time to Embedded System software deadline */
   set_system_time(2023, 11, 19, 3, 59, 59);
   /* Updating initial time in clockcalendar */
   ms.date->StartTimeTracking(
