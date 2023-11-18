@@ -7,7 +7,6 @@
 #include <unordered_map>
 
 #include "../../clockcalendar/include/clockcalendar.hpp"
-#include "../../display/include/display.hpp"
 
 /* Simple typedefs for convenience */
 typedef double temperature_t;
@@ -15,8 +14,11 @@ typedef double humidity_t;
 typedef double light_t;
 typedef double air_quality_t;
 
+
 /* Namespace for everything sensor related */
 namespace sensor {
+/* Forward declaration of Display class */
+class Display;
 /* Sensor IDs */
 typedef enum {
   DHT11_ID,
@@ -29,6 +31,8 @@ typedef enum {
 class Measure {
  public:
   Measure();
+  Measure(Measure const&) = default;
+  Measure& operator=(Measure const&) = default;
   std::shared_ptr<logs::ClockCalendar> date;
   bool err{false};
   sensor_id last_id;
@@ -58,13 +62,13 @@ using SensorP = Sensor *;
  */
 class SensorAPI {
  public:
-  SensorAPI(SensorP sensor, MeasureP data);
+  SensorAPI(SensorP sensor, MeasureP data,Display* ds);
   void update_data();
 
  private:
   SensorP sensor_{nullptr};
   MeasureP data_{nullptr};
-  Display display_;
+  Display* display_;
 };
 
 }  // namespace sensor
@@ -185,7 +189,7 @@ std::string LogData<Tp>::log_to_string() const {
       }
       break;
   }
-  return sensor_id + this->timestamp + "-" + "[" + measurement + "]";
+  return sensor_id + this->timestamp + "-" + "[" + measurement + "]" + "#";
 }
 
 }  // namespace logs

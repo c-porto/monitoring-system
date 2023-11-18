@@ -24,7 +24,6 @@ class Gyml8511 final : public Sensor {
  public:
   Gyml8511() : uv_intensity_{0.0}, uv_raw_{0.0} {
     this->id = GYML8511_ID;
-    this->init();
   }
   void init() override;
   void read(MeasureP ms) override;

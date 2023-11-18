@@ -1,6 +1,7 @@
 #include "include/clockcalendar.hpp"
 
 #include <chrono>
+#include <sys/_stdint.h>
 
 namespace logs {
 std::string ClockCalendar::GenerateTimestamp() const {
@@ -12,6 +13,6 @@ uint64_t ClockCalendar::TotalTimeOn() const {
   auto tmp =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   auto total_time = tmp - initial_time_;
-  return (uint32_t)total_time;
+  return static_cast<uint64_t>(total_time);
 }
 }  // namespace logs

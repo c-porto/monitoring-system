@@ -1,6 +1,7 @@
 #pragma once
 #include "i2c.hpp"
 #include "utils.hpp"
+#include <sys/_stdint.h>
 
 // External lib for ccs811 sensor encapsulated in Cjmcu811 class
 // Lib from github.com/Gustbel
@@ -17,7 +18,7 @@ extern "C" {
 
 #define CCS811_I2C_ADDRESS_2 \
   0x5A /* Default Device Address/Identifier for CCS811*/
-#define CCS811_I2C_ADDRESS_1 0x5B
+#define CCS811_I2C_ADDRESS_1 0x5A // Could be 0x5B
 #define WRITE_BIT I2C_MASTER_WRITE /*!< I2C master write */
 #define READ_BIT I2C_MASTER_READ   /*!< I2C master read */
 #define ACK_CHECK_EN 0x1           /*!< I2C master will check ack from slave*/
@@ -72,7 +73,7 @@ bool ccs811_write_byte(uint8_t, const uint8_t, const uint8_t);
 uint8_t ccs811_read_byte(uint8_t);
 ccs811_data ccs811_sensor_data(uint8_t);
 bool init_ccs811();
-float get_ccs811(int);
+uint16_t get_ccs811(int);
 }
 }  // namespace external_lib
 }  // namespace __cjmcu811

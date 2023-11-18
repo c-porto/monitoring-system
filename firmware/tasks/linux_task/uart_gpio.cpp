@@ -16,23 +16,27 @@ bool gpio_led_init() {
   io_conf.intr_type = GPIO_INTR_DISABLE;
   io_conf.mode = GPIO_MODE_OUTPUT;
   io_conf.pin_bit_mask =
-      (GPIO_OUTPUT_SEL((uint64_t)LedsGpio::TEMP_LED_PIN) |
-       GPIO_OUTPUT_SEL((uint64_t)LedsGpio::HUMIDITY_LED_PIN) |
-       GPIO_OUTPUT_SEL((uint64_t)LedsGpio::UV_LED_PIN) |
-       GPIO_OUTPUT_SEL((uint64_t)LedsGpio::AIR_LED_PIN));
+      (GPIO_OUTPUT_SEL(static_cast<uint64_t>(LedsGpio::TEMP_LED_PIN)) |
+       GPIO_OUTPUT_SEL(static_cast<uint64_t>(LedsGpio::HUMIDITY_LED_PIN)) |
+       GPIO_OUTPUT_SEL(static_cast<uint64_t>(LedsGpio::UV_LED_PIN)) |
+       GPIO_OUTPUT_SEL(static_cast<uint64_t>(LedsGpio::AIR_LED_PIN)));
   io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
   io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
   if (gpio_config(&io_conf) != ESP_OK) {
     ESP_LOGI("GPIO", "Error in Leds Gpio Config");
     err = true;
   }
+  gpio_set_level(static_cast<gpio_num_t>(LedsGpio::AIR_LED_PIN), 0);
+  gpio_set_level(static_cast<gpio_num_t>(LedsGpio::UV_LED_PIN), 0);
+  gpio_set_level(static_cast<gpio_num_t>(LedsGpio::HUMIDITY_LED_PIN), 0);
+  gpio_set_level(static_cast<gpio_num_t>(LedsGpio::TEMP_LED_PIN), 0);
   return err;
 }
 
 bool Buzzer::buzzer_init() {
   bool err{false};
   ledc_timer_config_t ledc_timer_conf{.speed_mode = LEDC_LOW_SPEED_MODE,
-                                      .duty_resolution = LEDC_TIMER_15_BIT,
+                                      .duty_resolution = LEDC_TIMER_10_BIT,
                                       .timer_num = this->get_timer(),
                                       .freq_hz = this->get_freq(),
                                       .clk_cfg = LEDC_AUTO_CLK};
@@ -46,7 +50,7 @@ bool Buzzer::buzzer_init() {
       .channel = this->get_channel(),
       .intr_type = LEDC_INTR_DISABLE,
       .timer_sel = this->get_timer(),
-      .duty = (1U << 14U),
+      .duty = (1U << 9U),
       .hpoint = 0,
   };
   if (ledc_channel_config(&ledc_channel_conf) != ESP_OK) {
@@ -104,8 +108,8 @@ QueueHandle_t host_uart_init() {
 
   QueueHandle_t uart_queue;
 
-  if (uart_driver_install(__port, UART_BUFFER_SIZE * 2, UART_BUFFER_SIZE * 2, 20,
-                          &uart_queue, 0) != ESP_OK)
+  if (uart_driver_install(__port, UART_BUFFER_SIZE * 2, UART_BUFFER_SIZE * 2,
+                          20, &uart_queue, 0) != ESP_OK)
     ESP_LOGI("UART", "Failed to Install uart driver");
 
   return uart_queue;

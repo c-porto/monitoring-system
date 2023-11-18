@@ -1,3 +1,3 @@
-idf_component_register(SRCS "dht11.cpp"
+idf_component_register(SRCS "dht11.cpp" "dht11_driver.cpp"
                     INCLUDE_DIRS "include"
-                    REQUIRES utils clockcalendar)
+                    REQUIRES driver utils clockcalendar )

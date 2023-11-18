@@ -35,7 +35,7 @@ class Buzzer final {
   Buzzer() {
     channel_ = LEDC_CHANNEL_0;
     timer_ = LEDC_TIMER_0;
-    freq_ = 4186;
+    freq_ = 800;
   }
   void set_buzzer_state(BuzzerState on_or_off) {
     switch (on_or_off) {
