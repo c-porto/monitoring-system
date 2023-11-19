@@ -121,8 +121,8 @@ void vTaskLinux(void *params) {
       /* Send All Events to Host Command */
     case logs::HostCmd::EVENTS:
       ESP_LOGI(::TAG, "Sending All Events to Host");
-      uart_write_bytes(UART_PORT, "Sending Events",
-                       std::strlen("Sending Events"));
+      uart_write_bytes(UART_PORT, "Sending Events#",
+                       std::strlen("Sending Events#"));
       /* While loop to send each event in the queue, one each iteration */
       while (fila) {
         /* Getting LogData event in String Format */

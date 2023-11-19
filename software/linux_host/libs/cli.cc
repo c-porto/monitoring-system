@@ -1,4 +1,5 @@
 #include "cli.hh"
+
 #include <memory>
 namespace cli {
 
@@ -27,4 +28,4 @@ CliSettings::CliSettings() {
       {"--help", [](CliSettings &settings) { settings.help_ = true; }},
   };
 }
-} // namespace cli
+}  // namespace cli

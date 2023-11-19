@@ -18,11 +18,11 @@ class CliSettings {
       std::function<void(CliSettings &, std::string const &)>;
   using help_handler = std::function<void(CliSettings &)>;
 
-public:
+ public:
   CliSettings();
-  auto get_baudrate() {return baudrate_;}
-  auto get_port() {return port_;}
-  auto get_help() {return help_;}
+  auto get_baudrate() { return baudrate_; }
+  auto get_port() { return port_; }
+  auto get_help() { return help_; }
   static std::unique_ptr<CliSettings> parse_settings(int argc,
                                                      const char **argv) {
     auto settings = std::make_unique<CliSettings>();
@@ -45,12 +45,12 @@ public:
     return settings;
   }
 
-private:
+ private:
   bool help_{false};
   std::optional<std::string> port_;
   std::optional<uint32_t> baudrate_;
   std::unordered_map<std::string, config_handler> uart_config_map_;
   std::unordered_map<std::string, help_handler> help_map_;
 };
-} // namespace cli
-#endif // !CLI_HH_
+}  // namespace cli
+#endif  // !CLI_HH_

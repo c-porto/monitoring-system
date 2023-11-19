@@ -1,30 +1,38 @@
 #ifndef EMB_SYS_COMM_HH_
 #define EMB_SYS_COMM_HH_
 
+#include <memory>
+#include <ostream>
+#include <vector>
+
 #include "cli.hh"
 #include "log_protocol.hh"
 #include "queue.hh"
 #include "request.hh"
 #include "uart.hh"
-#include <memory>
-#include <ostream>
-#include <vector>
 
 namespace monitoring_system {
-using cli_settings = std::unique_ptr<cli::CliSettings>;
-class LinuxHost final : public std::enable_shared_from_this<LinuxHost> {
-public:
-  void load_settings(cli_settings &&st) { user_settings_ = std::move(st); }
-  template <typename Tp>
-  logs::log_queue make_request(logs::Request *, logs::Protocol<Tp> *);
-  void display_logs(std::ostream &);
-  void start_cli_interface(std::ostream&);
+using Settings = std::unique_ptr<cli::CliSettings>;
+using FinalSettings = std::pair<uart::UartBaudrate, std::string>;
+using RequestP = std::unique_ptr<logs::Request>;
+using ProtocolP = std::unique_ptr<logs::Protocol>;
+using UartRef = uart::UartInterface const &;
 
-private:
-  cli_settings user_settings_;
-  std::vector<logs::log_queue> stored_logs_;
+class LinuxHost final : public std::enable_shared_from_this<LinuxHost> {
+ public:
+  void load_settings(Settings &&st) { user_settings_ = std::move(st); }
+  void make_request(RequestP &&, ProtocolP &&, UartRef);
+  void display_logs(std::ostream &, logs::RequestTypes &);
+  void start_cli_interface(std::ostream &);
+
+ private:
+  logs::RequestTypes handle_user_option(std::ostream &) const;
+  FinalSettings handle_settings(std::ostream &) const;
+  void handle_time_requirements(std::ostream &);
+  Settings user_settings_;
+  logs::log_queue stored_logs_;
 };
 
-} // namespace monitoring_system
+}  // namespace monitoring_system
 
-#endif // !EMB_SYS_COMM_HH_
+#endif  // !EMB_SYS_COMM_HH_
