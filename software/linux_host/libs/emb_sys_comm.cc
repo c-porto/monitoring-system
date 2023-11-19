@@ -1,6 +1,7 @@
 #include "emb_sys_comm.hh"
 
 #include <chrono>
+#include <iostream>
 #include <memory>
 #include <thread>
 
@@ -19,7 +20,23 @@ void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
 }
 
 void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
-  // TODO
+  os << "\n\n";
+  switch (type) {
+  case logs::RequestTypes::kTotalTime:
+    os << "Option choosen was Total Time online"
+       << "\n";
+    os << "The result provided by the embedded system was: "
+       << stored_logs_->dequeue() << "\n";
+    return;
+  case logs::RequestTypes::kEvents:
+    os << "Option choosen was Log Events"
+       << "\n";
+    break;
+  }
+  // TODO 
+  // Handle the kEvents case
+  // meaning given the option to show all events
+  // or a interval of dates
 }
 
 logs::RequestTypes LinuxHost::handle_user_option(std::ostream &os) const {
@@ -40,12 +57,12 @@ logs::RequestTypes LinuxHost::handle_user_option(std::ostream &os) const {
     os << "Enter your option: ";
   }
   switch (opt) {
-    case 1:
-      return logs::RequestTypes::kTotalTime;
-    case 2:
-      return logs::RequestTypes::kEvents;
-    default:
-      ++err_count;
+  case 1:
+    return logs::RequestTypes::kTotalTime;
+  case 2:
+    return logs::RequestTypes::kEvents;
+  default:
+    ++err_count;
   }
   if (err_count < 3) {
     return this->handle_user_option(os);
@@ -78,18 +95,18 @@ FinalSettings LinuxHost::handle_settings(std::ostream &os) const {
   } else {
     switch (static_cast<uart::UartBaudrate>(
         user_settings_->get_baudrate().value())) {
-      case uart::UartBaudrate::kBR9600:
-        baud = uart::UartBaudrate::kBR9600;
-      case uart::UartBaudrate::kBR19200:
-        baud = uart::UartBaudrate::kBR19200;
-      case uart::UartBaudrate::kBR38400:
-        baud = uart::UartBaudrate::kBR38400;
-      case uart::UartBaudrate::kBR115200:
-        baud = uart::UartBaudrate::kBR115200;
-      default:
-        os << "Baudrate provided isn't supported, using defaults" << '\n'
-           << "Default Baudrate: 115200" << '\n';
-        baud = uart::UartBaudrate::kBR115200;
+    case uart::UartBaudrate::kBR9600:
+      baud = uart::UartBaudrate::kBR9600;
+    case uart::UartBaudrate::kBR19200:
+      baud = uart::UartBaudrate::kBR19200;
+    case uart::UartBaudrate::kBR38400:
+      baud = uart::UartBaudrate::kBR38400;
+    case uart::UartBaudrate::kBR115200:
+      baud = uart::UartBaudrate::kBR115200;
+    default:
+      os << "Baudrate provided isn't supported, using defaults" << '\n'
+         << "Default Baudrate: 115200" << '\n';
+      baud = uart::UartBaudrate::kBR115200;
     }
   }
   std::string port;
@@ -123,21 +140,23 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
         uart::UartParityBit::kDisableParityBit,
         uart::UartBitsPerByte::kEightBitsPerByte);
     channel = std::move(tmp);
-  } catch (std::exception const &ex) {
+  } catch (std::exception &ex) {
     std::cerr << "Could not open uart connection \n";
     std::cerr << "Exception occurred: " << ex.what() << '\n';
-    std::cerr << "Terminating the program \n";
+    std::cerr << "Terminating the program... \n";
     exit(1);
   }
   while (true) {
     os << "___________________________________________________" << '\n';
-    os << "        Linux Host CLI INTERFACE Started"
+    os << "              Linux Host CLI Started"
        << "\n\n";
     os << "Choose one of the Options Below:"
        << "\n\n";
     os << "1. Request total time online to embedded system "
        << "\n";
     os << "2. Request event logs to embedded system "
+       << "\n\n";
+    os << "___________________________________________________"
        << "\n\n";
     os << "Enter your option: ";
 
@@ -147,18 +166,27 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     RequestP rq;
 
     switch (request_type) {
-      case logs::RequestTypes::kTotalTime:
-        proto = std::move(std::make_unique<logs::TotalTimeProtocol>());
-        rq = std::move(std::make_unique<logs::TotalTimeRequest>());
-      case logs::RequestTypes::kEvents:
-        proto = std::move(std::make_unique<logs::EventProtocol>());
-        rq = std::move(std::make_unique<logs::EventsRequest>());
+    case logs::RequestTypes::kTotalTime:
+      proto = std::move(std::make_unique<logs::TotalTimeProtocol>());
+      rq = std::move(std::make_unique<logs::TotalTimeRequest>());
+    case logs::RequestTypes::kEvents:
+      proto = std::move(std::make_unique<logs::EventProtocol>());
+      rq = std::move(std::make_unique<logs::EventsRequest>());
     }
 
-    self->make_request(std::move(rq), std::move(proto), *channel);
+    try {
+      self->make_request(std::move(rq), std::move(proto), *channel);
+    } catch (std::exception &ex) {
+      std::cerr << "Exception occurred, it's description is: " << ex.what()
+                << "\n";
+      std::cerr << "Terminating the program..."
+                << "\n";
+      exit(1);
+    }
     self->display_logs(os, request_type);
 
+    os << "Restarting the cli in 5 seconds" << "\n";
     std::this_thread::sleep_for(std::chrono::seconds{5});
   }
 }
-}  // namespace monitoring_system
+} // namespace monitoring_system

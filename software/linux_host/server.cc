@@ -13,7 +13,7 @@ int main(int argc, const char *argv[]) {
   try {
     auto settings = cli::CliSettings::parse_settings(argc, argv);
     host->load_settings(std::move(settings));
-  } catch (std::runtime_error const &ex) {
+  } catch (std::exception &ex) {
     std::cerr << "Exception triggered parsing cli commands \n Exception "
                  "description: "
               << ex.what() << '\n';
