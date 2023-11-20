@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <thread>
 
 #include "log_protocol.hh"
@@ -19,6 +20,50 @@ void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
   stored_logs_ = protocol->deserialize_data(msg_frame, uart);
 }
 
+void LinuxHost::parse_time_window_events(std::ostream &os) {
+  os << "\n\n"
+     << "Please provide the events time window \n";
+  os << "Use the following format: [%h:%m:%s - %D/%M/%Y]|[%h:%m:%s - %D/%M/%Y]"
+     << '\n' << "Enter time window: ";
+  std::string input;
+  std::getline(std::cin, input);
+  // TODO
+  // Parse user input and check for the time window in the logs stored in the queue
+  // logs date format -> [%h:%m:%s %D/%M/%Y]
+}
+
+logs::EventDisplayOptions
+LinuxHost::handle_user_event_option(std::ostream &os) const {
+  static int err_count{0};
+  int opt;
+
+  while (!(std::cin >> opt)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    os << "Attempted a invalid option, please try again :)"
+       << "\n\n";
+    os << "Please choose one of the Options Below:"
+       << "\n\n";
+    os << "1. Request all events provided by the embedded system"
+       << "\n";
+    os << "2. Request event from a especific time window"
+       << "\n\n";
+    os << "Enter your option: ";
+  }
+  switch (opt) {
+  case 1:
+    return logs::EventDisplayOptions::kAllEvents;
+  case 2:
+    return logs::EventDisplayOptions::kTimeWindowEvents;
+  default:
+    ++err_count;
+  }
+  if (err_count < 3) {
+    return this->handle_user_event_option(os);
+  }
+  exit(1);
+}
+
 void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
   os << "\n\n";
   switch (type) {
@@ -33,10 +78,29 @@ void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
        << "\n";
     break;
   }
-  // TODO 
-  // Handle the kEvents case
-  // meaning given the option to show all events
-  // or a interval of dates
+  os << "___________________________________________________" << '\n';
+  os << "              Log Events Display Options "
+     << "\n\n";
+  os << "Choose one of the Options Below:"
+     << "\n\n";
+  os << "1. Request all events provided by the embedded system"
+     << "\n";
+  os << "2. Request event from a especific time window"
+     << "\n\n";
+  os << "___________________________________________________"
+     << "\n\n";
+  os << "Enter your option: ";
+
+  auto display_option = this->handle_user_event_option(os);
+
+  if (display_option == logs::EventDisplayOptions::kTimeWindowEvents) {
+    os << "Displaying all events" << '\n';
+    while (stored_logs_) {
+      os << stored_logs_->dequeue() << '\n';
+    }
+    return;
+  }
+  this->parse_time_window_events(os);
 }
 
 logs::RequestTypes LinuxHost::handle_user_option(std::ostream &os) const {
@@ -185,7 +249,8 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     }
     self->display_logs(os, request_type);
 
-    os << "Restarting the cli in 5 seconds" << "\n";
+    os << "Restarting the cli in 5 seconds"
+       << "\n";
     std::this_thread::sleep_for(std::chrono::seconds{5});
   }
 }

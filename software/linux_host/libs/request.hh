@@ -14,6 +14,11 @@ enum class RequestTypes {
   kEvents,
 };
 
+enum class EventDisplayOptions{
+    kAllEvents,
+    kTimeWindowEvents,
+};
+
 /* Struct used to make the request API portable */
 struct MessageFrame {
   MessageFrame(std::size_t tx, std::size_t rx, std::string c)
