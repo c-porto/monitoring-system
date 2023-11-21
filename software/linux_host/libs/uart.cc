@@ -22,7 +22,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   tcflag_t bpbytes;
   speed_t baud;
 
-  serial_file_ = open(port_.c_str(), O_RDWR);
+  serial_file_ = open(port_.c_str(), O_RDWR|O_NOCTTY|O_NDELAY);
   termios tty;
 
   if (serial_file_ < 0) {

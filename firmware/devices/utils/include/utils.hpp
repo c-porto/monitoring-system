@@ -174,20 +174,20 @@ std::string LogData<Tp>::log_to_string() const {
   switch (this->id) {
     case sensor::CJMCU811_ID:
       sensor_id = "[CJMCU811]";
-      measurement = std::to_string(this->measure) + " ppm";
+      measurement = std::to_string(this->measure) + "ppm";
       break;
     case sensor::GYML8511_ID:
       sensor_id = "[GYML8511]";
-      measurement = std::to_string(this->measure) + " mW/cm^2";
+      measurement = std::to_string(this->measure) + "mW/cm^2";
       break;
     case sensor::DHT11_ID:
       sensor_id = "[DHT11]";
       switch (this->dht_type) {
         case logs::DhtReading::TEMPERATURE_READ:
-          measurement = std::to_string(this->measure) + " °C";
+          measurement = std::to_string(this->measure) + "C";
           break;
         case logs::DhtReading::HUMIDITY_READ:
-          measurement = std::to_string(this->measure) + " %";
+          measurement = std::to_string(this->measure) + "%";
           break;
       }
       break;
