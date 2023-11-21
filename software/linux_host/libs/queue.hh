@@ -28,6 +28,10 @@ class Queue {
   auto capacity() const -> std::size_t { return capacity_; }
   operator bool() const { return lenght_ != 0; }
   auto operator[](std::size_t n) const -> Tp const &;
+  void clear() {
+    tail_ = nullptr;
+    head_ = nullptr;
+  }
 
  private:
   std::size_t capacity_;

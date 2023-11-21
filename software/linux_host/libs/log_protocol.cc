@@ -1,5 +1,7 @@
 #include "log_protocol.hh"
 
+#include <absl/strings/str_split.h>
+
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -11,6 +13,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "queue.hh"
@@ -18,9 +21,8 @@
 
 namespace monitoring_system {
 namespace logs {
-log_queue
-TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
-                                    uart::UartInterface const &uart) const {
+log_queue TotalTimeProtocol::deserialize_data(
+    MessageFrame const &mf, uart::UartInterface const &uart) const {
   log_queue q = std::make_shared<ds::Queue<std::string>>(1);
   auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
   auto res = uart.write_data(rx_buffer.get(), mf.rx_msg_len_bytes);
@@ -43,15 +45,13 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
 
   return q;
 }
-log_queue
-EventProtocol::deserialize_data(MessageFrame const &mf,
-                                uart::UartInterface const &uart) const {
-
+log_queue EventProtocol::deserialize_data(
+    MessageFrame const &mf, uart::UartInterface const &uart) const {
   constexpr std::size_t kMaxNumberOfEvents{100};
 
   constexpr char packet_delimiter = '#';
 
-  log_queue q = std::make_shared<ds::Queue<std::string>>(100);
+  log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
 
   auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
 
@@ -59,20 +59,17 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   auto res_len = uart.read_data(rx_buffer.get(), mf.rx_msg_len_bytes);
 
-  if(res_len == 0){
+  if (res_len == 0) {
     throw std::runtime_error("No logs available");
   }
 
   const std::string full_msg{reinterpret_cast<char *>(rx_buffer.get()),
                              res_len};
 
-  for (auto start = full_msg.begin(); start != full_msg.end();) {
-    auto end = std::find(start, full_msg.end(), packet_delimiter);
-    q->enqueue(std::string(start, end));
-    if (end != full_msg.end()) {
-      ++end;
-    }
-    start = end;
+  std::vector<std::string> events = absl::StrSplit(full_msg, packet_delimiter);
+
+  for (std::string const &event : events) {
+    q->enqueue(event);
   }
 
   std::filesystem::path log_path{"./logs/logs.txt"};
@@ -105,5 +102,5 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   return q;
 }
-} // namespace logs
-} // namespace monitoring_system
+}  // namespace logs
+}  // namespace monitoring_system

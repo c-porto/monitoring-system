@@ -14,9 +14,9 @@ enum class RequestTypes {
   kEvents,
 };
 
-enum class EventDisplayOptions{
-    kAllEvents,
-    kTimeWindowEvents,
+enum class EventDisplayOptions {
+  kAllEvents,
+  kTimeWindowEvents,
 };
 
 /* Struct used to make the request API portable */
@@ -38,14 +38,14 @@ class Request {
 /* Derived class used to request Time data from the embedded system*/
 class TotalTimeRequest : public Request {
  public:
-  TotalTimeRequest() = default; 
+  TotalTimeRequest() = default;
   MessageFrame emb_sys_log_request(uart::UartInterface const &) override;
 };
 
 /* Derived class used to request Event data from the embedded system*/
 class EventsRequest : public Request {
  public:
-  EventsRequest() = default;  
+  EventsRequest() = default;
   MessageFrame emb_sys_log_request(uart::UartInterface const &) override;
 };
 }  // namespace logs

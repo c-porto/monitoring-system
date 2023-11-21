@@ -21,14 +21,14 @@ class Protocol {
 
 class EventProtocol : public Protocol {
  public:
-  EventProtocol() = default;  
+  EventProtocol() = default;
   log_queue deserialize_data(MessageFrame const &,
                              uart::UartInterface const &) const override;
 };
 
 class TotalTimeProtocol : public Protocol {
  public:
-  TotalTimeProtocol() = default;  
+  TotalTimeProtocol() = default;
   log_queue deserialize_data(MessageFrame const &,
                              uart::UartInterface const &) const override;
 };
