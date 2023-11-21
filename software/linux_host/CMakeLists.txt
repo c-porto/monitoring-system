@@ -11,6 +11,7 @@ file(GLOB SRC_FILES libs/*.cc)
 project(${this} CXX)
 
 add_executable(${this} ${server} ${SRC_FILES})
+add_compile_options(-Wall -Wpedantic -O3)
 
 target_include_directories(${this} INTERFACE ${CMAKE_SOURCE_DIR}/libs)
 
