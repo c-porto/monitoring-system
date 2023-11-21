@@ -6,13 +6,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED On)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 set(server server.cc)
 
+project(${this} CXX)
+
 file(GLOB SRC_FILES libs/*.cc)
 
-project(${this} CXX)
+add_subdirectory(third_party/abseil-cpp)
 
 add_executable(${this} ${server} ${SRC_FILES})
 add_compile_options(-Wall -Wpedantic -O3)
 
 target_include_directories(${this} INTERFACE ${CMAKE_SOURCE_DIR}/libs)
+
+target_link_libraries(${this} absl::strings)
+
+
 
 
