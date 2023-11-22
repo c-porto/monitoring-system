@@ -19,6 +19,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
                              UartBaudrate ubd, UartStopBit usb,
                              UartParityBit upb, UartBitsPerByte ubpb)
     : port_{serial} {
+
   tcflag_t bpbytes;
 
   speed_t baud;
@@ -73,19 +74,10 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
 
   tty.c_lflag &= ~ECHO;
   tty.c_lflag &= ~ECHOE;
-  tty.c_lflag &= ~ECHONL;
 
   tty.c_lflag &= ~ISIG;
 
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY);
-
-  tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL);
-
   tty.c_oflag &= ~OPOST;
-  tty.c_oflag &= ~ONLCR;
-
-  tty.c_cc[VTIME] = 1;
-  tty.c_cc[VMIN] = 0;
 
   switch (ubd) {
     case UartBaudrate::kBR9600:

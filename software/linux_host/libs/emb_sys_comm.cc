@@ -311,7 +311,6 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
 
     os << "Restarting the cli in 5 seconds"
        << "\n";
-
     std::this_thread::sleep_for(std::chrono::seconds{5});
   }
 }
