@@ -20,9 +20,11 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
                              UartParityBit upb, UartBitsPerByte ubpb)
     : port_{serial} {
   tcflag_t bpbytes;
+
   speed_t baud;
 
   serial_file_ = open(port_.c_str(), O_RDWR|O_NOCTTY|O_NDELAY);
+
   termios tty;
 
   if (serial_file_ < 0) {
@@ -112,7 +114,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   os << "Sucessfully created uart connection" << std::endl;
 }
 UartInterface::~UartInterface() { close(serial_file_); };
-std::size_t UartInterface::write_data(unsigned char *send_buffer,
+std::size_t UartInterface::write_data(const char *send_buffer,
                                       std::size_t len) const {
   auto res = write(serial_file_, send_buffer, len);
   if (res < 0) {
@@ -120,7 +122,7 @@ std::size_t UartInterface::write_data(unsigned char *send_buffer,
   }
   return res;
 }
-std::size_t UartInterface::read_data(unsigned char *receive_buffer,
+std::size_t UartInterface::read_data(char *receive_buffer,
                                      std::size_t buflen) const {
   auto msg_len = read(serial_file_, receive_buffer, buflen);
 

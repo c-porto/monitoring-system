@@ -28,9 +28,14 @@ log_queue
 TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
                                     uart::UartInterface const &uart) const {
   log_queue q = std::make_shared<ds::Queue<std::string>>(1);
-  unsigned char rx_buffer[mf.rx_msg_len_bytes];
+
+  char rx_buffer[mf.rx_msg_len_bytes];
+
   auto res = uart.read_data(rx_buffer, sizeof(rx_buffer));
+
   uint64_t seconds_on{0};
+
+  std::cout << mf.tx_msg_len_bytes << std::endl;
 
   int abytes;
 
@@ -44,16 +49,22 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
     seconds_on |= (static_cast<uint64_t>(rx_buffer[i]) << (8U * i));
   }
   std::cout << seconds_on << std::endl;
+
   auto duration = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::seconds(seconds_on));
+
   auto hrs = std::chrono::duration_cast<std::chrono::hours>(duration);
+
   duration -= hrs;
+
   auto min = std::chrono::duration_cast<std::chrono::minutes>(duration);
+
   duration -= min;
 
   const std::string kTotalTimeOn =
       std::to_string(hrs.count()) + " hours, " + std::to_string(min.count()) +
       " minutes, " + std::to_string(duration.count()) + " seconds On";
+
   q->enqueue(kTotalTimeOn);
 
   return q;
@@ -67,7 +78,7 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
 
-  unsigned char rx_buffer[mf.rx_msg_len_bytes];
+  char rx_buffer[mf.rx_msg_len_bytes];
 
   auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
 
@@ -75,7 +86,7 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
     throw std::runtime_error("No logs available");
   }
 
-  const std::string full_msg{reinterpret_cast<char *>(rx_buffer), res_len};
+  const std::string full_msg{rx_buffer, res_len};
 
   std::cout << full_msg << std::endl;
 
