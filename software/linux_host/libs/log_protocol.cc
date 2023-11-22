@@ -1,8 +1,9 @@
 #include "log_protocol.hh"
 
 #include <absl/strings/str_split.h>
-
 #include <asm-generic/ioctls.h>
+#include <sys/ioctl.h>
+
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -16,7 +17,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <sys/ioctl.h>
 #include <vector>
 
 #include "queue.hh"
@@ -24,31 +24,23 @@
 
 namespace monitoring_system {
 namespace logs {
-log_queue
-TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
-                                    uart::UartInterface const &uart) const {
+log_queue TotalTimeProtocol::deserialize_data(
+    MessageFrame const &mf, uart::UartInterface const &uart) const {
   log_queue q = std::make_shared<ds::Queue<std::string>>(1);
 
-  char rx_buffer[mf.rx_msg_len_bytes];
+  auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
 
-  auto res = uart.read_data(rx_buffer, sizeof(rx_buffer));
+  std::memset(rx_buffer.get(), 0, mf.rx_msg_len_bytes);
+
+  auto res_len = uart.read_data(rx_buffer.get(), mf.rx_msg_len_bytes);
 
   uint64_t seconds_on{0};
 
   std::cout << mf.tx_msg_len_bytes << std::endl;
 
-  int abytes;
-
-  ioctl(uart.get_port(), FIONREAD, &abytes);
-
-  std::cout << abytes << std::endl;
-
-  std::cout << res << std::endl;
-
-  for (std::size_t i{0}; i < res; ++i) {
-    seconds_on |= (static_cast<uint64_t>(rx_buffer[i]) << (8U * i));
+  for (std::size_t i{0}; i < res_len; ++i) {
+    seconds_on |= (rx_buffer[i] << (8U * i));
   }
-  std::cout << seconds_on << std::endl;
 
   auto duration = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::seconds(seconds_on));
@@ -69,26 +61,26 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
 
   return q;
 }
-log_queue
-EventProtocol::deserialize_data(MessageFrame const &mf,
-                                uart::UartInterface const &uart) const {
+log_queue EventProtocol::deserialize_data(
+    MessageFrame const &mf, uart::UartInterface const &uart) const {
   constexpr std::size_t kMaxNumberOfEvents{100};
 
   constexpr char packet_delimiter = '#';
 
   log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
 
-  char rx_buffer[mf.rx_msg_len_bytes];
+  auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
 
-  auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
+  std::memset(rx_buffer.get(), 0, mf.rx_msg_len_bytes);
+
+  auto res_len = uart.read_data(rx_buffer.get(), mf.rx_msg_len_bytes);
 
   if (res_len == 0) {
     throw std::runtime_error("No logs available");
   }
 
-  const std::string full_msg{rx_buffer, res_len};
-
-  std::cout << full_msg << std::endl;
+  const std::string full_msg{reinterpret_cast<char *>(rx_buffer.get()),
+                             res_len};
 
   std::vector<std::string> events = absl::StrSplit(full_msg, packet_delimiter);
 
@@ -126,5 +118,5 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   return q;
 }
-} // namespace logs
-} // namespace monitoring_system
+}  // namespace logs
+}  // namespace monitoring_system

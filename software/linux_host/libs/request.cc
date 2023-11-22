@@ -8,35 +8,37 @@
 namespace monitoring_system {
 namespace logs {
 
-MessageFrame
-TotalTimeRequest::emb_sys_log_request(uart::UartInterface const &uart) {
+MessageFrame TotalTimeRequest::emb_sys_log_request(
+    uart::UartInterface const &uart) {
   constexpr std::size_t kTotalTimeResponseBytes{8};
 
-  const char msg_buffer[1] = {'T'};
+  const std::string msg{"T"};
 
-  auto res = uart.write_data(msg_buffer, sizeof(msg_buffer));
+  auto res =
+      uart.write_data(reinterpret_cast<const unsigned char *>(msg.c_str()), 1);
 
   if (res != 1) {
     throw std::runtime_error("Erroneous message was sent");
   }
 
-  return MessageFrame{res, kTotalTimeResponseBytes, {msg_buffer[0]}};
+  return MessageFrame{res, kTotalTimeResponseBytes, msg};
 }
 
-MessageFrame
-EventsRequest::emb_sys_log_request(uart::UartInterface const &uart) {
+MessageFrame EventsRequest::emb_sys_log_request(
+    uart::UartInterface const &uart) {
   constexpr std::size_t kEventResponseBytes{10000};
 
-  const char msg_buffer[1] = {'L'};
+  const std::string msg{"L"};
 
-  auto res = uart.write_data(msg_buffer, sizeof(msg_buffer));
+  auto res =
+      uart.write_data(reinterpret_cast<const unsigned char *>(msg.c_str()), 1);
 
   if (res != 1) {
     throw std::runtime_error("Erroneous message was sent");
   }
 
-  return MessageFrame{res, kEventResponseBytes, {msg_buffer[0]}};
+  return MessageFrame{res, kEventResponseBytes, msg};
 }
 
-} // namespace logs
-} // namespace monitoring_system
+}  // namespace logs
+}  // namespace monitoring_system
