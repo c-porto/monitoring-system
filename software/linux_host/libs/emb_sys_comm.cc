@@ -5,6 +5,8 @@
 
 #include <array>
 #include <chrono>
+#include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -13,6 +15,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 #include "log_protocol.hh"
@@ -27,30 +30,34 @@ void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
 
   const logs::MessageFrame msg_frame = request->emb_sys_log_request(uart);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds{250});
-
-  stored_logs_ = protocol->deserialize_data(msg_frame, uart);
+  try {
+    stored_logs_ = protocol->deserialize_data(msg_frame, uart);
+  } catch (std::exception const &ex) {
+    std::cerr << ex.what() << '\n';
+    std::cerr << "Restarting the program" << '\n';
+    system("clear");
+  }
 }
 
 RequestP LinuxHost::request_factory(logs::RequestTypes &rq) {
   switch (rq) {
-    case logs::RequestTypes::kTotalTime:
-      return std::make_unique<logs::TotalTimeRequest>();
-    case logs::RequestTypes::kEvents:
-      return std::make_unique<logs::EventsRequest>();
-    default:
-      return nullptr;
+  case logs::RequestTypes::kTotalTime:
+    return std::make_unique<logs::TotalTimeRequest>();
+  case logs::RequestTypes::kEvents:
+    return std::make_unique<logs::EventsRequest>();
+  default:
+    return nullptr;
   }
 }
 
 ProtocolP LinuxHost::protocol_factory(logs::RequestTypes &rq) {
   switch (rq) {
-    case logs::RequestTypes::kTotalTime:
-      return std::make_unique<logs::TotalTimeProtocol>();
-    case logs::RequestTypes::kEvents:
-      return std::make_unique<logs::EventProtocol>();
-    default:
-      return nullptr;
+  case logs::RequestTypes::kTotalTime:
+    return std::make_unique<logs::TotalTimeProtocol>();
+  case logs::RequestTypes::kEvents:
+    return std::make_unique<logs::EventProtocol>();
+  default:
+    return nullptr;
   }
 }
 
@@ -80,12 +87,13 @@ void LinuxHost::parse_time_window_events(std::ostream &os) {
   return;
 }
 
-logs::EventDisplayOptions LinuxHost::handle_user_event_option(
-    std::ostream &os) const {
+logs::EventDisplayOptions
+LinuxHost::handle_user_event_option(std::ostream &os) const {
   static int err_count{0};
   int opt;
 
   while (!(std::cin >> opt)) {
+    system("clear");
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     os << "Attempted a invalid option, please try again :)"
@@ -101,12 +109,12 @@ logs::EventDisplayOptions LinuxHost::handle_user_event_option(
     os << "Enter your option: ";
   }
   switch (opt) {
-    case 1:
-      return logs::EventDisplayOptions::kAllEvents;
-    case 2:
-      return logs::EventDisplayOptions::kTimeWindowEvents;
-    default:
-      ++err_count;
+  case 1:
+    return logs::EventDisplayOptions::kAllEvents;
+  case 2:
+    return logs::EventDisplayOptions::kTimeWindowEvents;
+  default:
+    ++err_count;
   }
   if (err_count < 3) {
     return this->handle_user_event_option(os);
@@ -118,16 +126,16 @@ void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
   os << "\n\n";
 
   switch (type) {
-    case logs::RequestTypes::kTotalTime:
-      os << "Option choosen was Total Time online"
-         << "\n";
-      os << "The result provided by the embedded system was: "
-         << stored_logs_->dequeue() << "\n";
-      return;
-    case logs::RequestTypes::kEvents:
-      os << "Option choosen was Log Events"
-         << "\n";
-      break;
+  case logs::RequestTypes::kTotalTime:
+    os << "Option choosen was Total Time online"
+       << "\n";
+    os << "The result provided by the embedded system was: "
+       << stored_logs_->dequeue() << "\n";
+    return;
+  case logs::RequestTypes::kEvents:
+    os << "Option choosen was Log Events"
+       << "\n";
+    break;
   }
 
   os << "___________________________________________________" << '\n';
@@ -183,12 +191,12 @@ logs::RequestTypes LinuxHost::handle_user_option(std::ostream &os) const {
   }
 
   switch (opt) {
-    case 1:
-      return logs::RequestTypes::kTotalTime;
-    case 2:
-      return logs::RequestTypes::kEvents;
-    default:
-      ++err_count;
+  case 1:
+    return logs::RequestTypes::kTotalTime;
+  case 2:
+    return logs::RequestTypes::kEvents;
+  default:
+    ++err_count;
   }
 
   if (err_count < 3) {
@@ -224,18 +232,18 @@ FinalSettings LinuxHost::handle_settings(std::ostream &os) const {
   } else {
     switch (static_cast<uart::UartBaudrate>(
         user_settings_->get_baudrate().value())) {
-      case uart::UartBaudrate::kBR9600:
-        baud = uart::UartBaudrate::kBR9600;
-      case uart::UartBaudrate::kBR19200:
-        baud = uart::UartBaudrate::kBR19200;
-      case uart::UartBaudrate::kBR38400:
-        baud = uart::UartBaudrate::kBR38400;
-      case uart::UartBaudrate::kBR115200:
-        baud = uart::UartBaudrate::kBR115200;
-      default:
-        os << "Baudrate provided isn't supported, using defaults" << '\n'
-           << "Default Baudrate: 115200" << '\n';
-        baud = uart::UartBaudrate::kBR115200;
+    case uart::UartBaudrate::kBR9600:
+      baud = uart::UartBaudrate::kBR9600;
+    case uart::UartBaudrate::kBR19200:
+      baud = uart::UartBaudrate::kBR19200;
+    case uart::UartBaudrate::kBR38400:
+      baud = uart::UartBaudrate::kBR38400;
+    case uart::UartBaudrate::kBR115200:
+      baud = uart::UartBaudrate::kBR115200;
+    default:
+      os << "Baudrate provided isn't supported, using defaults" << '\n'
+         << "Default Baudrate: 115200" << '\n';
+      baud = uart::UartBaudrate::kBR115200;
     }
   }
 
@@ -295,6 +303,8 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
 
     auto request_type = self->handle_user_option(os);
 
+    system("clear");
+
     ProtocolP proto = self->protocol_factory(request_type);
 
     RequestP rq = self->request_factory(request_type);
@@ -304,9 +314,10 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     } catch (std::exception &ex) {
       std::cerr << "Exception occurred, it's description is: " << ex.what()
                 << "\n";
-      std::cerr << "Terminating the program..."
+      std::cerr << "Restarting the program..."
                 << "\n";
-      exit(1);
+      system("clear");
+      continue;
     }
 
     self->display_logs(os, request_type);
@@ -314,6 +325,8 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     os << "Restarting the cli in 5 seconds"
        << "\n";
     std::this_thread::sleep_for(std::chrono::seconds{5});
+
+    system("clear");
   }
 }
-}  // namespace monitoring_system
+} // namespace monitoring_system

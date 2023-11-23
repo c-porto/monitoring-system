@@ -65,9 +65,6 @@ auto Queue<Tp>::enqueue(Tp item) -> void {
 /* Dequeue itens from the front of the queue */
 template <typename Tp>
 auto Queue<Tp>::dequeue() -> Tp {
-  if (lenght_ == 0) {
-    throw std::runtime_error("Attempt to Dequeue an empty Queue");
-  }
   --lenght_;
   Tp value = head_->value;
   head_ = head_->next;

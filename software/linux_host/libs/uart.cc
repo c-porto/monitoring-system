@@ -23,7 +23,8 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
 
   speed_t baud;
 
-  serial_file_ = open(port_.c_str(), O_RDWR);
+  serial_file_ = open(port_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+  fcntl(serial_file_, F_SETFL, 0);
 
   termios tty;
 
@@ -36,75 +37,76 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
     throw std::runtime_error("Unable to initialize termios struct");
   }
 
-  tty.c_cflag &= ~PARENB;
-
   if (upb == UartParityBit::kEnableParityBit) {
     tty.c_cflag |= PARENB;
   }
 
-  tty.c_cflag &=
-      ~CSTOPB;  // Clear stop field, only one stop bit used in communication
+  tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity
 
-  tty.c_cflag &= ~CSIZE;  // Clear all the size bits, then use one of the
-                          // statements below
+  tty.c_cflag &=
+      ~CSTOPB; // Clear stop field, only one stop bit used in communication
+
+  tty.c_cflag &=
+      ~CSIZE; // Clear all the size bits, then use one of the statements below
 
   switch (ubpb) {
-    case UartBitsPerByte::kFiveBitsPerByte:
-      tty.c_cflag |= CS5;
-      break;
-    case UartBitsPerByte::kSixBitsPerByte:
-      tty.c_cflag |= CS6;
-      break;
-    case UartBitsPerByte::kSevenBitsPerByte:
-      tty.c_cflag |= CS7;
-      break;
-    case UartBitsPerByte::kEightBitsPerByte:
-      tty.c_cflag |= CS8;
-      break;
-    default:
-      throw std::logic_error("Invalid option for bits per byte");
+  case UartBitsPerByte::kFiveBitsPerByte:
+    tty.c_cflag |= CS5;
+    break;
+  case UartBitsPerByte::kSixBitsPerByte:
+    tty.c_cflag |= CS6;
+    break;
+  case UartBitsPerByte::kSevenBitsPerByte:
+    tty.c_cflag |= CS7;
+    break;
+  case UartBitsPerByte::kEightBitsPerByte:
+    tty.c_cflag |= CS8;
+    break;
+  default:
+    throw std::logic_error("Invalid option for bits per byte");
   }
 
+  tty.c_cflag &= ~CRTSCTS;
   tty.c_cflag |=
-      CREAD | CLOCAL;  // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+      CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
 
   tty.c_lflag &= ~ICANON;
 
-  tty.c_lflag &= ~ECHO;    // Disable echo
-  tty.c_lflag &= ~ECHOE;   // Disable erasure
-  tty.c_lflag &= ~ECHONL;  // Disable new-line echo
+  tty.c_lflag &= ~ECHO;   // Disable echo
+  tty.c_lflag &= ~ECHOE;  // Disable erasure
+  tty.c_lflag &= ~ECHONL; // Disable new-line echo
 
-  tty.c_lflag &= ~ISIG;  // Disable interpretation of INTR, QUIT and SUSP
+  tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
 
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY);  // Turn off s/w flow ctrl
+  tty.c_iflag &= ~(IXON | IEXTEN); // Turn off s/w flow ctrl
 
   tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR |
-                   ICRNL);  // Disable any special handling of received bytes
+                   ICRNL); // Disable any special handling of received bytes
 
-  tty.c_oflag &= ~OPOST;  // Prevent special interpretation of output bytes
-                          // (e.g. newline chars)
+  tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes
+                         // (e.g. newline chars)
   tty.c_oflag &=
-      ~ONLCR;  // Prevent conversion of newline to carriage return/line feed
+      ~ONLCR; // Prevent conversion of newline to carriage return/line feed
 
-  tty.c_cc[VTIME] = 10;  // Wait for up to 1s (10 deciseconds), returning as
-                         // soon as any data is received.
+  tty.c_cc[VTIME] = 0; 
+                      
   tty.c_cc[VMIN] = 0;
 
   switch (ubd) {
-    case UartBaudrate::kBR9600:
-      baud = B9600;
-      break;
-    case UartBaudrate::kBR19200:
-      baud = B19200;
-      break;
-    case UartBaudrate::kBR38400:
-      baud = B38400;
-      break;
-    case UartBaudrate::kBR115200:
-      baud = B115200;
-      break;
-    default:
-      std::logic_error("Invalid option for Baudrate");
+  case UartBaudrate::kBR9600:
+    baud = B9600;
+    break;
+  case UartBaudrate::kBR19200:
+    baud = B19200;
+    break;
+  case UartBaudrate::kBR38400:
+    baud = B38400;
+    break;
+  case UartBaudrate::kBR115200:
+    baud = B115200;
+    break;
+  default:
+    std::logic_error("Invalid option for Baudrate");
   }
 
   cfsetispeed(&tty, baud);
@@ -117,23 +119,17 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   os << "Sucessfully created uart connection" << std::endl;
 }
 UartInterface::~UartInterface() { close(serial_file_); };
-std::size_t UartInterface::write_data(const unsigned char *send_buffer,
+std::size_t UartInterface::write_data(const void *send_buffer,
                                       std::size_t len) const {
   auto res = write(serial_file_, send_buffer, len);
-  if (res < 0) {
-    throw std::runtime_error("Error writing the uart message");
-  }
+
   return res;
 }
-std::size_t UartInterface::read_data(unsigned char *receive_buffer,
+std::size_t UartInterface::read_data(void *receive_buffer,
                                      std::size_t buflen) const {
   auto msg_len = read(serial_file_, receive_buffer, buflen);
-
-  if (msg_len < 0) {
-    throw std::runtime_error("Error reading the uart message");
-  }
 
   return msg_len;
 }
 
-}  // namespace uart
+} // namespace uart

@@ -15,7 +15,7 @@ MessageFrame TotalTimeRequest::emb_sys_log_request(
   const std::string msg{"T"};
 
   auto res =
-      uart.write_data(reinterpret_cast<const unsigned char *>(msg.c_str()), 1);
+      uart.write_data(msg.c_str(), 1);
 
   if (res != 1) {
     throw std::runtime_error("Erroneous message was sent");
@@ -31,7 +31,7 @@ MessageFrame EventsRequest::emb_sys_log_request(
   const std::string msg{"L"};
 
   auto res =
-      uart.write_data(reinterpret_cast<const unsigned char *>(msg.c_str()), 1);
+      uart.write_data(msg.c_str(), 1);
 
   if (res != 1) {
     throw std::runtime_error("Erroneous message was sent");

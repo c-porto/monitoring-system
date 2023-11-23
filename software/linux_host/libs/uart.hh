@@ -22,20 +22,18 @@ enum class UartBitsPerByte {
 };
 
 class UartInterface {
- public:
+public:
   UartInterface(std::ostream &, std::string, UartBaudrate, UartStopBit,
                 UartParityBit, UartBitsPerByte);
   ~UartInterface();
-  std::size_t write_data(const unsigned char *send_buffer,
-                         std::size_t len) const;
-  std::size_t read_data(unsigned char *receive_buffer,
-                        std::size_t buflen) const;
+  std::size_t write_data(const void *send_buffer, std::size_t len) const;
+  std::size_t read_data(void *receive_buffer, std::size_t buflen) const;
   auto get_port() const { return serial_file_; }
 
- protected:
+protected:
   std::string port_;
   int serial_file_;
 };
 
-}  // namespace uart
-#endif  // !UART_HH_
+} // namespace uart
+#endif // !UART_HH_

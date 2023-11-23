@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unistd.h>
 #include <vector>
 
 #include "queue.hh"
@@ -24,19 +25,20 @@
 
 namespace monitoring_system {
 namespace logs {
-log_queue TotalTimeProtocol::deserialize_data(
-    MessageFrame const &mf, uart::UartInterface const &uart) const {
+log_queue
+TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
+                                    uart::UartInterface const &uart) const {
   log_queue q = std::make_shared<ds::Queue<std::string>>(1);
 
-  auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
+  uint8_t rx_buffer[10000];
 
-  std::memset(rx_buffer.get(), 0, mf.rx_msg_len_bytes);
+  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
 
-  auto res_len = uart.read_data(rx_buffer.get(), mf.rx_msg_len_bytes);
+  usleep(100000);
+
+  auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
 
   uint64_t seconds_on{0};
-
-  std::cout << mf.tx_msg_len_bytes << std::endl;
 
   for (std::size_t i{0}; i < res_len; ++i) {
     seconds_on |= (rx_buffer[i] << (8U * i));
@@ -61,26 +63,35 @@ log_queue TotalTimeProtocol::deserialize_data(
 
   return q;
 }
-log_queue EventProtocol::deserialize_data(
-    MessageFrame const &mf, uart::UartInterface const &uart) const {
+log_queue
+EventProtocol::deserialize_data(MessageFrame const &mf,
+                                uart::UartInterface const &uart) const {
   constexpr std::size_t kMaxNumberOfEvents{100};
 
   constexpr char packet_delimiter = '#';
 
   log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
 
-  auto rx_buffer = std::make_unique<unsigned char[]>(mf.rx_msg_len_bytes);
+  char rx_buffer[10000];
 
-  std::memset(rx_buffer.get(), 0, mf.rx_msg_len_bytes);
+  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
 
-  auto res_len = uart.read_data(rx_buffer.get(), mf.rx_msg_len_bytes);
+  usleep(100000);
 
-  if (res_len == 0) {
+  auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
+
+  std::cout << res_len << std::endl;
+  usleep(10000000);
+
+  if (res_len <= 1) {
     throw std::runtime_error("No logs available");
   }
 
-  const std::string full_msg{reinterpret_cast<char *>(rx_buffer.get()),
-                             res_len};
+  rx_buffer[res_len] = '0';
+
+  const std::string full_msg{rx_buffer};
+
+  std::cout << full_msg;
 
   std::vector<std::string> events = absl::StrSplit(full_msg, packet_delimiter);
 
@@ -108,15 +119,20 @@ log_queue EventProtocol::deserialize_data(
   log_file << "Logs received on " << ss.str()
            << "______________________________ \n\n\n";
 
-  q->dequeue();
+  if (q)
+    q->dequeue();
 
   for (std::size_t i{0}; i < q->lenght(); ++i) {
-    log_file << "Event Number: " << i << "| " << (*q)[i];
+    try {
+      log_file << "Event Number: " << i << "| " << (*q)[i];
+    } catch (std::exception const &ex) {
+      std::cerr << ex.what() << std::endl;
+    }
   }
 
   log_file << "______________________________ \n\n\n";
 
   return q;
 }
-}  // namespace logs
-}  // namespace monitoring_system
+} // namespace logs
+} // namespace monitoring_system
