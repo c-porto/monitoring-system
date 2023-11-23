@@ -24,6 +24,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   speed_t baud;
 
   serial_file_ = open(port_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+
   fcntl(serial_file_, F_SETFL, 0);
 
   termios tty;
@@ -67,6 +68,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   }
 
   tty.c_cflag &= ~CRTSCTS;
+
   tty.c_cflag |=
       CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
 

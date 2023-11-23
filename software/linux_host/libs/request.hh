@@ -21,11 +21,11 @@ enum class EventDisplayOptions {
 
 /* Struct used to make the request API portable */
 struct MessageFrame {
-  MessageFrame(std::size_t tx, std::size_t rx, std::string c)
+  MessageFrame(int tx, int rx, char c)
       : tx_msg_len_bytes{tx}, rx_msg_len_bytes{rx}, cmd{c} {}
-  std::size_t tx_msg_len_bytes;
-  std::size_t rx_msg_len_bytes;
-  std::string cmd;
+  int tx_msg_len_bytes;
+  int rx_msg_len_bytes;
+  char cmd;
 };
 
 /* Base class used as interface to request data from the embedded system*/

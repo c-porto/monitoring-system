@@ -26,13 +26,15 @@
 namespace monitoring_system {
 namespace logs {
 log_queue
-TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
+TotalTimeProtocol::deserialize_data(MessageFrame &mf,
                                     uart::UartInterface const &uart) const {
   log_queue q = std::make_shared<ds::Queue<std::string>>(1);
 
-  uint8_t rx_buffer[10000];
+  const char tx_buffer[1] = {mf.cmd};
 
-  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
+  char rx_buffer[mf.rx_msg_len_bytes];
+
+  int abytes = uart.write_data(tx_buffer, 1);
 
   usleep(100000);
 
@@ -64,7 +66,7 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
   return q;
 }
 log_queue
-EventProtocol::deserialize_data(MessageFrame const &mf,
+EventProtocol::deserialize_data(MessageFrame &mf,
                                 uart::UartInterface const &uart) const {
   constexpr std::size_t kMaxNumberOfEvents{100};
 
@@ -72,26 +74,23 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
 
-  char rx_buffer[10000];
+  const char tx_buffer[1] = {mf.cmd};
 
-  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
+  char rx_buffer[mf.rx_msg_len_bytes];
+
+  int abytes = uart.write_data(tx_buffer, 1);
 
   usleep(100000);
 
   auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
 
-  std::cout << res_len << std::endl;
-  usleep(10000000);
-
   if (res_len <= 1) {
     throw std::runtime_error("No logs available");
   }
 
-  rx_buffer[res_len] = '0';
+  rx_buffer[res_len+1] = '0';
 
   const std::string full_msg{rx_buffer};
-
-  std::cout << full_msg;
 
   std::vector<std::string> events = absl::StrSplit(full_msg, packet_delimiter);
 
@@ -119,8 +118,9 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
   log_file << "Logs received on " << ss.str()
            << "______________________________ \n\n\n";
 
-  if (q)
+  if (q){
     q->dequeue();
+  }
 
   for (std::size_t i{0}; i < q->lenght(); ++i) {
     try {

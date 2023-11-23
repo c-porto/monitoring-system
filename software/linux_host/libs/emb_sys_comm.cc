@@ -28,7 +28,7 @@ void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
   auto request = std::move(rq);
   auto protocol = std::move(pr);
 
-  const logs::MessageFrame msg_frame = request->emb_sys_log_request(uart);
+  logs::MessageFrame msg_frame = request->emb_sys_log_request(uart);
 
   try {
     stored_logs_ = protocol->deserialize_data(msg_frame, uart);
@@ -324,6 +324,7 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
 
     os << "Restarting the cli in 5 seconds"
        << "\n";
+
     std::this_thread::sleep_for(std::chrono::seconds{5});
 
     system("clear");
