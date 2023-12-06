@@ -10,29 +10,29 @@
 namespace monitoring_system {
 namespace logs {
 
-using log_queue = std::shared_ptr<ds::Queue<std::string>>;
+using log_queue = ds::Queue<std::string> *;
 
 class Protocol {
- public:
-  virtual log_queue deserialize_data(MessageFrame const &,
-                                     uart::UartInterface const &) const = 0;
+public:
+  virtual log_queue deserialize_data(MessageFrame &,
+                                     uart::UartInterface &) const = 0;
   virtual ~Protocol() = default;
 };
 
 class EventProtocol : public Protocol {
- public:
+public:
   EventProtocol() = default;
-  log_queue deserialize_data(MessageFrame const &,
-                             uart::UartInterface const &) const override;
+  log_queue deserialize_data(MessageFrame &,
+                             uart::UartInterface &) const override;
 };
 
 class TotalTimeProtocol : public Protocol {
- public:
+public:
   TotalTimeProtocol() = default;
-  log_queue deserialize_data(MessageFrame const &,
-                             uart::UartInterface const &) const override;
+  log_queue deserialize_data(MessageFrame &,
+                             uart::UartInterface &) const override;
 };
 
-}  // namespace logs
-}  // namespace monitoring_system
-#endif  // !LOG_PROTOCOL_HH_
+} // namespace logs
+} // namespace monitoring_system
+#endif // !LOG_PROTOCOL_HH_

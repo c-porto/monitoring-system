@@ -8,37 +8,23 @@
 namespace monitoring_system {
 namespace logs {
 
-MessageFrame TotalTimeRequest::emb_sys_log_request(
-    uart::UartInterface const &uart) {
+MessageFrame
+TotalTimeRequest::emb_sys_log_request(uart::UartInterface const &uart) {
   constexpr std::size_t kTotalTimeResponseBytes{8};
 
-  const std::string msg{"T"};
+  constexpr char msg{'T'};
 
-  auto res =
-      uart.write_data(msg.c_str(), 1);
-
-  if (res != 1) {
-    throw std::runtime_error("Erroneous message was sent");
-  }
-
-  return MessageFrame{res, kTotalTimeResponseBytes, msg};
+  return MessageFrame{1, kTotalTimeResponseBytes, msg};
 }
 
-MessageFrame EventsRequest::emb_sys_log_request(
-    uart::UartInterface const &uart) {
+MessageFrame
+EventsRequest::emb_sys_log_request(uart::UartInterface const &uart) {
   constexpr std::size_t kEventResponseBytes{10000};
 
-  const std::string msg{"L"};
+  constexpr char msg{'L'};
 
-  auto res =
-      uart.write_data(msg.c_str(), 1);
-
-  if (res != 1) {
-    throw std::runtime_error("Erroneous message was sent");
-  }
-
-  return MessageFrame{res, kEventResponseBytes, msg};
+  return MessageFrame{1, kEventResponseBytes, msg};
 }
 
-}  // namespace logs
-}  // namespace monitoring_system
+} // namespace logs
+} // namespace monitoring_system

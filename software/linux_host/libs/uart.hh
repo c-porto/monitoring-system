@@ -6,6 +6,7 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <unistd.h>
 namespace uart {
 
 enum class UartBaudrate { kBR9600, kBR19200, kBR38400, kBR115200 };
@@ -26,8 +27,14 @@ public:
   UartInterface(std::ostream &, std::string, UartBaudrate, UartStopBit,
                 UartParityBit, UartBitsPerByte);
   ~UartInterface();
-  std::size_t write_data(const void *send_buffer, std::size_t len) const;
-  std::size_t read_data(void *receive_buffer, std::size_t buflen) const;
+  std::size_t write_data(const void *send_buffer, std::size_t len) const {
+    auto res = write(serial_file_, send_buffer, len);
+    return res;
+  }
+  std::size_t read_data(void *receive_buffer, std::size_t buflen) const {
+    auto msg_len = read(serial_file_, receive_buffer, buflen);
+    return msg_len;
+  }
   auto get_port() const { return serial_file_; }
 
 protected:

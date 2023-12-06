@@ -24,14 +24,12 @@
 
 namespace monitoring_system {
 
-void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
-  auto request = std::move(rq);
-  auto protocol = std::move(pr);
+void LinuxHost::make_request(RequestP rq, ProtocolP pr, UartRef uart) {
 
-  const logs::MessageFrame msg_frame = request->emb_sys_log_request(uart);
+  logs::MessageFrame msg_frame = rq->emb_sys_log_request(uart);
 
   try {
-    stored_logs_ = protocol->deserialize_data(msg_frame, uart);
+    stored_logs_ = pr->deserialize_data(msg_frame, uart);
   } catch (std::exception const &ex) {
     std::cerr << ex.what() << '\n';
     std::cerr << "Restarting the program" << '\n';
@@ -40,22 +38,28 @@ void LinuxHost::make_request(RequestP &&rq, ProtocolP &&pr, UartRef uart) {
 }
 
 RequestP LinuxHost::request_factory(logs::RequestTypes &rq) {
+  RequestP request;
   switch (rq) {
   case logs::RequestTypes::kTotalTime:
-    return std::make_unique<logs::TotalTimeRequest>();
+    request = new logs::TotalTimeRequest;
+    return request;
   case logs::RequestTypes::kEvents:
-    return std::make_unique<logs::EventsRequest>();
+    request = new logs::EventsRequest;
+    return request;
   default:
     return nullptr;
   }
 }
 
 ProtocolP LinuxHost::protocol_factory(logs::RequestTypes &rq) {
+  ProtocolP protocol;
   switch (rq) {
   case logs::RequestTypes::kTotalTime:
-    return std::make_unique<logs::TotalTimeProtocol>();
+    protocol = new logs::TotalTimeProtocol;
+    return protocol;
   case logs::RequestTypes::kEvents:
-    return std::make_unique<logs::EventProtocol>();
+    protocol = new logs::EventProtocol;
+    return protocol;
   default:
     return nullptr;
   }
@@ -71,8 +75,10 @@ void LinuxHost::parse_time_window_events(std::ostream &os) {
 
   std::this_thread::sleep_for(std::chrono::seconds{3});
 
+  system("clear");
+
   os << "Displaying stored events from the log file"
-     << "\n\n";
+     << "\n\n\n";
 
   const std::filesystem::path log_path{"./logs/logs.txt"};
 
@@ -83,6 +89,12 @@ void LinuxHost::parse_time_window_events(std::ostream &os) {
   while (std::getline(log_file, line)) {
     os << line << '\n';
   }
+
+  std::cout << '\n';
+
+  delete stored_logs_;
+
+  std::this_thread::sleep_for(std::chrono::seconds{3});
 
   return;
 }
@@ -131,6 +143,7 @@ void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
        << "\n";
     os << "The result provided by the embedded system was: "
        << stored_logs_->dequeue() << "\n";
+    delete stored_logs_;
     return;
   case logs::RequestTypes::kEvents:
     os << "Option choosen was Log Events"
@@ -156,10 +169,19 @@ void LinuxHost::display_logs(std::ostream &os, logs::RequestTypes &type) {
   auto display_option = this->handle_user_event_option(os);
 
   if (display_option == logs::EventDisplayOptions::kAllEvents) {
-    os << "Displaying all events" << '\n';
-    while (stored_logs_) {
-      os << stored_logs_->dequeue() << '\n';
+    os << '\n' <<  "Displaying all events" << "\n\n";
+    try {
+      while (*stored_logs_) {
+        os << stored_logs_->dequeue() << '\n';
+      }
+      delete stored_logs_;
+    } catch (std::exception const &ex) {
+      os << "Exception Ocurred parsing time window events"
+         << "\n"
+         << "Description: " << ex.what() << '\n';
     }
+  os 
+     << "\n\n";
     return;
   }
 
@@ -272,14 +294,13 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
 
   auto cfg = self->handle_settings(os);
 
-  std::unique_ptr<uart::UartInterface> channel;
+  uart::UartInterface *channel;
 
   try {
-    auto tmp = std::make_unique<uart::UartInterface>(
-        os, cfg.second, cfg.first, uart::UartStopBit::kOneStopBit,
-        uart::UartParityBit::kDisableParityBit,
+    channel = new uart::UartInterface(
+        os, cfg.second, uart::UartBaudrate::kBR115200,
+        uart::UartStopBit::kOneStopBit, uart::UartParityBit::kDisableParityBit,
         uart::UartBitsPerByte::kEightBitsPerByte);
-    channel = std::move(tmp);
   } catch (std::exception &ex) {
     std::cerr << "Could not open uart connection \n";
     std::cerr << "Exception occurred: " << ex.what() << '\n';
@@ -310,7 +331,7 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     RequestP rq = self->request_factory(request_type);
 
     try {
-      self->make_request(std::move(rq), std::move(proto), *channel);
+      self->make_request(rq, proto, *channel);
     } catch (std::exception &ex) {
       std::cerr << "Exception occurred, it's description is: " << ex.what()
                 << "\n";
@@ -321,6 +342,9 @@ void LinuxHost::start_cli_interface(std::ostream &os) {
     }
 
     self->display_logs(os, request_type);
+
+    delete rq;
+    delete proto;
 
     os << "Restarting the cli in 5 seconds"
        << "\n";

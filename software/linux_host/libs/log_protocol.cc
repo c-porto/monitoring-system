@@ -25,14 +25,15 @@
 
 namespace monitoring_system {
 namespace logs {
-log_queue
-TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
-                                    uart::UartInterface const &uart) const {
-  log_queue q = std::make_shared<ds::Queue<std::string>>(1);
+log_queue TotalTimeProtocol::deserialize_data(MessageFrame &mf,
+                                              uart::UartInterface &uart) const {
+  log_queue q = new ds::Queue<std::string>(1);
 
-  uint8_t rx_buffer[10000];
+  const char tx_buffer[1] = {mf.cmd};
 
-  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
+  char rx_buffer[mf.rx_msg_len_bytes];
+
+  int abytes = uart.write_data(tx_buffer, 1);
 
   usleep(100000);
 
@@ -40,9 +41,11 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
 
   uint64_t seconds_on{0};
 
-  for (std::size_t i{0}; i < res_len; ++i) {
-    seconds_on |= (rx_buffer[i] << (8U * i));
-  }
+ // for (std::size_t i{0}; i < res_len; ++i) {
+    //seconds_on |= (static_cast<uint64_t>(rx_buffer[i]) << (8 * i));
+  //}
+  //
+  seconds_on = static_cast<std::uint64_t>(rx_buffer[0]);
 
   auto duration = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::seconds(seconds_on));
@@ -63,37 +66,31 @@ TotalTimeProtocol::deserialize_data(MessageFrame const &mf,
 
   return q;
 }
-log_queue
-EventProtocol::deserialize_data(MessageFrame const &mf,
-                                uart::UartInterface const &uart) const {
+log_queue EventProtocol::deserialize_data(MessageFrame &mf,
+                                          uart::UartInterface &uart) const {
   constexpr std::size_t kMaxNumberOfEvents{100};
 
   constexpr char packet_delimiter = '#';
 
-  log_queue q = std::make_shared<ds::Queue<std::string>>(kMaxNumberOfEvents);
+  log_queue q = new ds::Queue<std::string>(kMaxNumberOfEvents);
 
-  char rx_buffer[10000];
+  const char tx_buffer[1] = {mf.cmd};
 
-  std::memset(rx_buffer, 0, sizeof(rx_buffer) );
+  char rx_buffer[mf.rx_msg_len_bytes];
+
+  int abytes = uart.write_data(tx_buffer, 1);
 
   usleep(100000);
 
   auto res_len = uart.read_data(rx_buffer, sizeof(rx_buffer));
 
-  std::cout << res_len << std::endl;
-  usleep(10000000);
-
   if (res_len <= 1) {
     throw std::runtime_error("No logs available");
   }
 
-  rx_buffer[res_len] = '0';
+  rx_buffer[res_len + 1] = '\0';
 
-  const std::string full_msg{rx_buffer};
-
-  std::cout << full_msg;
-
-  std::vector<std::string> events = absl::StrSplit(full_msg, packet_delimiter);
+  std::vector<std::string> events = absl::StrSplit(rx_buffer, packet_delimiter);
 
   for (std::string const &event : events) {
     q->enqueue(event);
@@ -105,7 +102,7 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
     std::filesystem::create_directory("./logs/");
   }
 
-  std::fstream log_file{log_path, std::ios::out | std::ios::app};
+  std::ofstream log_file{log_path, std::ios::app};
 
   auto current_time{
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())};
@@ -116,23 +113,30 @@ EventProtocol::deserialize_data(MessageFrame const &mf,
 
   ss << std::put_time(time_info, "%H:%M:%S | %d/%m/%Y");
 
-  log_file << "Logs received on " << ss.str()
-           << "______________________________ \n\n\n";
+  log_file << "________________________________________________________________"
+              "_____________________________ \n\n\n"
+           << "                                           Logs received on "
+           << ss.str() << "\n\n";
 
-  if (q)
+  if (*q) {
     q->dequeue();
+  }
+
+  log_queue final_queue = new ds::Queue<std::string>(kMaxNumberOfEvents);
 
   for (std::size_t i{0}; i < q->lenght(); ++i) {
     try {
-      log_file << "Event Number: " << i << "| " << (*q)[i];
+      log_file << "Event Number: " << i << "| " << q->peek() << '\n';
+      final_queue->enqueue(q->dequeue());
     } catch (std::exception const &ex) {
       std::cerr << ex.what() << std::endl;
     }
   }
 
-  log_file << "______________________________ \n\n\n";
+  log_file << "________________________________________________________________"
+              "_____________________________ \n\n\n";
 
-  return q;
+  return final_queue;
 }
 } // namespace logs
 } // namespace monitoring_system

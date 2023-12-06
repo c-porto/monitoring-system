@@ -14,9 +14,9 @@
 namespace monitoring_system {
 using Settings = std::unique_ptr<cli::CliSettings>;
 using FinalSettings = std::pair<uart::UartBaudrate, std::string>;
-using RequestP = std::unique_ptr<logs::Request>;
-using ProtocolP = std::unique_ptr<logs::Protocol>;
-using UartRef = uart::UartInterface const &;
+using RequestP = logs::Request*;
+using ProtocolP = logs::Protocol*;
+using UartRef = uart::UartInterface&;
 
 class LinuxHost final : public std::enable_shared_from_this<LinuxHost> {
  public:
@@ -27,7 +27,7 @@ class LinuxHost final : public std::enable_shared_from_this<LinuxHost> {
   logs::RequestTypes handle_user_option(std::ostream &) const;
   logs::EventDisplayOptions handle_user_event_option(std::ostream &) const;
   FinalSettings handle_settings(std::ostream &) const;
-  void make_request(RequestP &&, ProtocolP &&, UartRef);
+  void make_request(RequestP, ProtocolP, UartRef);
   void display_logs(std::ostream &, logs::RequestTypes &);
   void handle_time_requirements(std::ostream &);
   void parse_time_window_events(std::ostream &);

@@ -23,7 +23,7 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
 
   speed_t baud;
 
-  serial_file_ = open(port_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+  serial_file_ = open(serial.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
   fcntl(serial_file_, F_SETFL, 0);
 
   termios tty;
@@ -119,17 +119,5 @@ UartInterface::UartInterface(std::ostream &os, std::string serial,
   os << "Sucessfully created uart connection" << std::endl;
 }
 UartInterface::~UartInterface() { close(serial_file_); };
-std::size_t UartInterface::write_data(const void *send_buffer,
-                                      std::size_t len) const {
-  auto res = write(serial_file_, send_buffer, len);
-
-  return res;
-}
-std::size_t UartInterface::read_data(void *receive_buffer,
-                                     std::size_t buflen) const {
-  auto msg_len = read(serial_file_, receive_buffer, buflen);
-
-  return msg_len;
-}
 
 } // namespace uart
