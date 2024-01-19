@@ -12,6 +12,7 @@ serde = "1.0.188"
 serde_json = "1.0.107"
 anyhow = "1.0.75"
 axum = "0.6.20"
+dotenv = "0.15.0"
 
 [dev-dependencies]
 anyhow = "1"
