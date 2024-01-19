@@ -14,7 +14,7 @@ pub struct ApiRef {
 }
 
 impl ApiRef {
-    pub fn new(version: String, name: String, project: String) -> Self {
+    fn new(version: String, name: String, project: String) -> Self {
         Self {
             version,
             name,
@@ -25,9 +25,21 @@ impl ApiRef {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct MeasurementSample {
-    temp: u16,
-    umidity: u16,
-    light: u16,
+    temp: f64,
+    humidity: f64,
+    light: f64,
+    air: f64,
+}
+
+impl MeasurementSample {
+    fn new(temp: f64, humidity: f64, light: f64, air: f64) -> Self {
+        Self {
+            temp,
+            humidity,
+            light,
+            air,
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -36,11 +48,12 @@ pub struct MeasurementsData {
     dataset: Vec<MeasurementSample>,
 }
 
-pub async fn post_measuring_handler(Json(sample): Json<MeasurementSample>) -> impl IntoResponse {
+pub async fn post_measuring_handler(Json(payload): Json<MeasurementSample>) -> impl IntoResponse {
+    let data = payload;
     todo!();
 }
 
-pub async fn get_statistics_handler() -> Result<Json<MeasurementSample>> {
+pub async fn update_ui_handler() -> Result<Json<MeasurementSample>> {
     todo!();
 }
 
