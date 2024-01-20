@@ -12,7 +12,8 @@
 #include "utils.hpp"
 #include <cstdlib>
 
-namespace {
+namespace
+{
 const char *TAG = "TASK API";
 }
 
@@ -22,22 +23,29 @@ mutex_t mutex;
 EventGroupHandle_t event_group;
 
 /* Creates all tasks*/
-void create_tasks(void *sample_ptr) {
-  if (xTaskCreatePinnedToCore(sensor_read_task, "Sensor Read Task", 2048UL,
-                              sample_ptr, 5U, NULL, 0) == pdFAIL) {
-    ESP_LOGI(::TAG, "Failed to create Sensor Read Task");
-    std::exit(1);
-  }
+void create_tasks(void *sample_ptr)
+{
+    if (xTaskCreatePinnedToCore(sensor_read_task, "Sensor Read Task", 2048UL, sample_ptr, 5U, NULL, 0) == pdFAIL)
+    {
+        ESP_LOGI(::TAG, "Failed to create Sensor Read Task");
+        std::exit(1);
+    }
 
-  if (xTaskCreatePinnedToCore(http_client_task, "Http Task", 2048U, sample_ptr,
-                              5U, NULL, 1) == pdFAIL) {
-    ESP_LOGI(::TAG, "Failed to create Http Client Task");
-    std::exit(1);
-  }
+    if (xTaskCreatePinnedToCore(http_client_task, "Http Task", 2048U, sample_ptr, 5U, NULL, 1) == pdFAIL)
+    {
+        ESP_LOGI(::TAG, "Failed to create Http Client Task");
+        std::exit(1);
+    }
 }
 
 /* Creates event_group */
-void create_event_groups() { event_group = xEventGroupCreate(); }
+void create_event_groups()
+{
+    event_group = xEventGroupCreate();
+}
 
 /* Creates mutex */
-void create_mutex() { mutex = mutex_create(); }
+void create_mutex()
+{
+    mutex = mutex_create();
+}

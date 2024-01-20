@@ -12,7 +12,8 @@
 #include "utils.hpp"
 #include <vector>
 
-namespace {
+namespace
+{
 const logs::Logger log{"Sensor Read Task"};
 sensor::Display display;
 sensor::Cjmcu811 cjmcu;
@@ -23,32 +24,35 @@ sensor::Gyml8511 gyml;
 std::vector<sensor::Sensor *> sensors = {&gyml, &cjmcu};
 } // namespace
 
-void sensor_read_task(void *sample_ptr) {
+void sensor_read_task(void *sample_ptr)
+{
+    sensor::Measure *sample = static_cast<sensor::Measure *>(sample_ptr);
 
-  sensor::Measure *sample = static_cast<sensor::Measure *>(sample_ptr);
+    TickType_t last_cycle = xTaskGetTickCount();
 
-  TickType_t last_cycle = xTaskGetTickCount();
+    display.init();
 
-  display.init();
-
-  for (auto &sensor : sensors) {
-    sensor->init();
-  }
-
-  while (true) {
-    mutex_lock(mutex, 500U);
-
-    for (auto &sensor : sensors) {
-      sensor->read(sample);
+    for (auto &sensor : sensors)
+    {
+        sensor->init();
     }
 
-    mutex_unlock(mutex);
+    while (true)
+    {
+        mutex_lock(mutex, 500U);
 
-    display << sample;
-    log << sample;
+        for (auto &sensor : sensors)
+        {
+            sensor->read(sample);
+        }
 
-    xEventGroupSetBits(event_group, SENSOR_READ_EVENT);
+        mutex_unlock(mutex);
 
-    vTaskDelayUntil(&last_cycle, pdMS_TO_TICKS(2500U));
-  }
+        display << sample;
+        log << sample;
+
+        xEventGroupSetBits(event_group, SENSOR_READ_EVENT);
+
+        vTaskDelayUntil(&last_cycle, pdMS_TO_TICKS(2500U));
+    }
 }

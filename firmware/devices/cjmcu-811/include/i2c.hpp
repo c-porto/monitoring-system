@@ -2,7 +2,8 @@
 
 #include <stdbool.h>
 
-extern "C" {
+extern "C"
+{
 
-void init_i2c();
+    void init_i2c();
 }
