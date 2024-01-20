@@ -33,4 +33,9 @@ Logger const &Logger::operator<<(sensor::MeasureP sample) const {
   return *this;
 }
 
+Logger const &Logger::operator<<(const char *str) const {
+  ESP_LOGI(tag_.c_str(), "%s", str);
+  return *this;
+}
+
 } // namespace logs

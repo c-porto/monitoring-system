@@ -1,9 +1,9 @@
 #pragma once
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/semphr.h"
 #include <memory>
 #include <sstream>
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
-#include "freertos/event_groups.h"
 
 #define SENSOR_READ_EVENT (1UL << 0UL)
 
@@ -138,6 +138,7 @@ public:
   Logger(const char *);
   Logger const &operator<<(Result) const;
   Logger const &operator<<(sensor::MeasureP) const;
+  Logger const &operator<<(const char *) const;
 
 private:
   std::string tag_;
