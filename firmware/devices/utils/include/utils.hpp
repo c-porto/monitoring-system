@@ -1,12 +1,20 @@
 #pragma once
-#include <chrono>
-#include <functional>
 #include <memory>
-#include <optional>
-#include <ostream>
-#include <unordered_map>
+#include <sstream>
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/event_groups.h"
 
-#include "../../clockcalendar/include/clockcalendar.hpp"
+#define SENSOR_READ_EVENT (1UL << 0UL)
+
+#define mutex_t SemaphoreHandle_t
+#define mutex_create() xSemaphoreCreateMutex()
+#define mutex_lock(__mutex, __ms)                                              \
+  xSemaphoreTake((__mutex), pdMS_TO_TICKS((__ms)))
+#define mutex_unlock(__mutex) xSemaphoreGive((__mutex))
+
+extern mutex_t mutex;
+extern EventGroupHandle_t event_group;
 
 /* Simple typedefs for convenience */
 typedef double temperature_t;
@@ -14,6 +22,10 @@ typedef double humidity_t;
 typedef double light_t;
 typedef double air_quality_t;
 
+enum class Result {
+  Ok,
+  Err,
+};
 
 /* Namespace for everything sensor related */
 namespace sensor {
@@ -29,19 +41,15 @@ typedef enum {
 /* Measure Class responsible for keep tracking all measurements, time and
  * errors */
 class Measure {
- public:
+public:
   Measure();
-  Measure(Measure const&) = default;
-  Measure& operator=(Measure const&) = default;
-  std::shared_ptr<logs::ClockCalendar> date;
-  bool err{false};
-  sensor_id last_id;
+  Measure(light_t, temperature_t, air_quality_t, humidity_t);
+  Measure(Measure const &) = default;
+  Measure &operator=(Measure const &) = default;
   temperature_t temp;
   humidity_t hm;
   light_t uv;
   air_quality_t air;
-  friend std::ostream &operator<<(std::ostream &os, Measure const &ms);
-  operator bool() const noexcept { return err; }
 };
 
 /* Simply for convenience */
@@ -49,7 +57,7 @@ using MeasureP = Measure *;
 
 /* Abstract Parent class for all sensors*/
 class Sensor {
- public:
+public:
   sensor_id id;
   virtual void read(MeasureP data) = 0;
   virtual void init() = 0;
@@ -58,36 +66,21 @@ class Sensor {
 /* Simply for convenience */
 using SensorP = Sensor *;
 
-/* Standard API for updating global measurements instance for individual sensors
- */
-class SensorAPI {
- public:
-  SensorAPI(SensorP sensor, MeasureP data,Display* ds);
-  void update_data();
-
- private:
-  SensorP sensor_{nullptr};
-  MeasureP data_{nullptr};
-  Display* display_;
-};
-
-}  // namespace sensor
+} // namespace sensor
 
 /* Namespace for data structures */
 namespace ds {
 /* Node struct for linked list*/
-template <typename Tp>
-struct Node {
+template <typename Tp> struct Node {
   Tp value;
   std::shared_ptr<Node> next;
   Node(Tp item) : value{item}, next{nullptr} {}
 };
 /* Queue class implemented to be a static capacity circular linked list */
-template <typename Tp>
-class Queue {
+template <typename Tp> class Queue {
   using NodeP = std::shared_ptr<Node<Tp>>;
 
- public:
+public:
   Queue(std::size_t capacity) : capacity_{capacity} {}
   auto enqueue(Tp item) -> void;
   auto dequeue() -> Tp;
@@ -96,7 +89,7 @@ class Queue {
   auto capacity() const -> std::size_t { return capacity_; }
   operator bool() const { return lenght_ != 0; }
 
- private:
+private:
   std::size_t capacity_;
   std::size_t lenght_{0};
   NodeP head_{nullptr};
@@ -104,8 +97,7 @@ class Queue {
 };
 
 /* Enqueue itens in the back of the queue */
-template <typename Tp>
-auto Queue<Tp>::enqueue(Tp item) -> void {
+template <typename Tp> auto Queue<Tp>::enqueue(Tp item) -> void {
   if (lenght_ < capacity_) {
     if (tail_ == nullptr) {
       tail_ = std::make_shared<Node<Tp>>(item);
@@ -126,8 +118,7 @@ auto Queue<Tp>::enqueue(Tp item) -> void {
 }
 
 /* Dequeue itens from the front of the queue */
-template <typename Tp>
-auto Queue<Tp>::dequeue() -> Tp {
+template <typename Tp> auto Queue<Tp>::dequeue() -> Tp {
   --lenght_;
   Tp value = head_->value;
   head_ = head_->next;
@@ -139,94 +130,16 @@ auto Queue<Tp>::dequeue() -> Tp {
   return value;
 }
 
-}  // namespace ds
+} // namespace ds
 
-/* Namespace for log related stuff */
 namespace logs {
+class Logger {
+public:
+  Logger(const char *);
+  Logger const &operator<<(Result) const;
+  Logger const &operator<<(sensor::MeasureP) const;
 
-/* Enum to define which measurement was stored by dht11*/
-enum class DhtReading {
-  TEMPERATURE_READ,
-  HUMIDITY_READ,
+private:
+  std::string tag_;
 };
-
-/* LogData struct that defines variables to be send to linux host */
-template <typename Tp>
-struct LogData {
-  sensor::sensor_id id;
-  std::string timestamp;
-  Tp measure;
-  DhtReading dht_type;
-  LogData(sensor::sensor_id ID, std::string data, Tp sample)
-      : id{ID}, timestamp{data}, measure{sample} {};
-  LogData(sensor::sensor_id ID, std::string data, Tp sample, DhtReading ms_type)
-      : id{ID}, timestamp{data}, measure{sample}, dht_type{ms_type} {};
-  friend std::ostream &operator<<(std::ostream &os, LogData<double> const &log);
-  std::string log_to_string() const;
-};
-
-/* Member function used to convert each event in a string format,
- * then the string is send to host via uart */
-template <typename Tp>
-std::string LogData<Tp>::log_to_string() const {
-  std::string sensor_id;
-  std::string measurement;
-  switch (this->id) {
-    case sensor::CJMCU811_ID:
-      sensor_id = "[CJMCU811]";
-      measurement = std::to_string(this->measure) + "ppm";
-      break;
-    case sensor::GYML8511_ID:
-      sensor_id = "[GYML8511]";
-      measurement = std::to_string(this->measure) + "mW/cm^2";
-      break;
-    case sensor::DHT11_ID:
-      sensor_id = "[DHT11]";
-      switch (this->dht_type) {
-        case logs::DhtReading::TEMPERATURE_READ:
-          measurement = std::to_string(this->measure) + "C";
-          break;
-        case logs::DhtReading::HUMIDITY_READ:
-          measurement = std::to_string(this->measure) + "%";
-          break;
-      }
-      break;
-  }
-  return sensor_id + this->timestamp + "-" + "[" + measurement + "]" + "#";
-}
-
-}  // namespace logs
-
-/* Used for naming convenience */
-using LogHandler =
-    std::function<void(ds::Queue<logs::LogData<double>> &, sensor::Measure &)>;
-
-/* Map used for handle individual measurements, needed since dht11 reads two
- * variables at time */
-const std::unordered_map<sensor::sensor_id, LogHandler> kLogConversion{
-    /* Dht11 handler for single read enqueue */
-    {sensor::DHT11_ID,
-     [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> temp{sample.last_id,
-                                  sample.date->GenerateTimestamp(), sample.temp,
-                                  logs::DhtReading::TEMPERATURE_READ};
-       fila.enqueue(temp);
-       logs::LogData<double> hm{sample.last_id,
-                                sample.date->GenerateTimestamp(), sample.hm,
-                                logs::DhtReading::HUMIDITY_READ};
-       fila.enqueue(hm);
-     }},
-    /* Gyml8511 handler for single read enqueue */
-    {sensor::GYML8511_ID,
-     [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> uv{sample.last_id,
-                                sample.date->GenerateTimestamp(), sample.uv};
-       fila.enqueue(uv);
-     }},
-    /* Cjmcu811  handler for single read enqueue */
-    {sensor::CJMCU811_ID,
-     [](ds::Queue<logs::LogData<double>> &fila, sensor::Measure &sample) {
-       logs::LogData<double> air{sample.last_id,
-                                 sample.date->GenerateTimestamp(), sample.air};
-       fila.enqueue(air);
-     }}};
+} // namespace logs

@@ -1,33 +1,36 @@
-#include "include/utils.hpp"
+#include "utils.hpp"
+#include "esp_log.h"
 
-#include <memory>
-#include <ostream>
-#include <string>
-#include "../display/include/display.hpp"
+sensor::Measure::Measure(light_t l, temperature_t t, air_quality_t a,
+                         humidity_t h)
+    : temp{t}, hm{h}, uv{l}, air{a} {}
 
-std::ostream &operator<<(std::ostream &os, sensor::Measure const &ms) {
-  os << "Temperature Reading: " << ms.temp << std::endl;
-  os << "Humidity Reading: " << ms.hm << std::endl;
-  os << "Uv Radiance Reading: " << ms.uv << std::endl;
-  os << "Air Quality Reading: " << ms.air << std::endl;
-  return os;
+sensor::Measure::Measure() : temp{0.0}, hm{0.0}, uv{0.0}, air{0.0} {}
+
+namespace logs {
+
+Logger::Logger(const char *tag) { tag_ = tag; }
+
+Logger const &Logger::operator<<(Result r) const {
+  switch (r) {
+  default:
+  case Result::Ok:
+    ESP_LOGI(tag_.c_str(), "Http GET returned Ok");
+    break;
+  case Result::Err:
+    ESP_LOGI(tag_.c_str(), "Http GET returned Err");
+    break;
+  }
+
+  return *this;
 }
 
-sensor::Measure::Measure() { date = std::make_shared<logs::ClockCalendar>(); }
-
-sensor::SensorAPI::SensorAPI(sensor::SensorP sensor, sensor::MeasureP data,sensor::Display* ds)
-    : sensor_{sensor}, data_{data},display_{ds} {
-};
-
-
-void sensor::SensorAPI::update_data() {
-  sensor_->read(data_);
-  *display_ << data_;
+Logger const &Logger::operator<<(sensor::MeasureP sample) const {
+  ESP_LOGI(tag_.c_str(), "Temperature: %f", sample->temp);
+  ESP_LOGI(tag_.c_str(), "Humidity: %f", sample->hm);
+  ESP_LOGI(tag_.c_str(), "Air quality: %f", sample->air);
+  ESP_LOGI(tag_.c_str(), "Uv Irradiance: %f", sample->uv);
+  return *this;
 }
 
-std::ostream &operator<<(std::ostream &os, logs::LogData<double> const &log) {
-  os << "Sensor ID: " << log.id << std::endl;
-  os << "Event Time: " << log.timestamp << std::endl;
-  os << "Measurement: " << log.measure << std::endl;
-  return os;
-}
+} // namespace logs

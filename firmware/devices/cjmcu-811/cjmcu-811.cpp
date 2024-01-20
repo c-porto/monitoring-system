@@ -146,10 +146,6 @@ void Cjmcu811::read(MeasureP ms) {
   C02_ppm_ = static_cast<double>(__cjmcu811::external_lib::get_ccs811(0U));
   ESP_LOGI(::TAG, "Measure was %f ppm", static_cast<float>(C02_ppm_));
   ms->air = C02_ppm_;
-  ms->err = false;
-  ms->last_id = this->id;
-  ms->date->ClockNow();
-  ms->date->CalendarNow();
 }
 
 } // namespace sensor

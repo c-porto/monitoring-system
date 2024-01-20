@@ -11,8 +11,6 @@
 #include "hal/adc_types.h"
 #include "utils.hpp"
 
-#define DEBUG_SENSOR
-
 namespace {
 const char *TAG = "Gyml8511";
 }
@@ -76,13 +74,11 @@ void Gyml8511::read(MeasureP ms) {
 
   if (adc_oneshot_read(adc_handle_, ADC_CHANNEL_5, &sample_raw) != ESP_OK) {
     ESP_LOGI(TAG, "Failed to Read ADC on reading");
-    ms->err = true;
     return;
   }
 
   if (adc_cali_raw_to_voltage(adc_cali_, sample_raw, &v) != ESP_OK) {
     ESP_LOGI(TAG, "Error on adc raw to voltage conversion");
-    ms->err = true;
     return;
   }
 
@@ -91,16 +87,7 @@ void Gyml8511::read(MeasureP ms) {
   convert_uvintensity_from_raw();
 
   ms->uv = uv_intensity_;
-  ms->err = false;
-  ms->last_id = this->id;
-  ms->date->ClockNow();
-  ms->date->CalendarNow();
 
-#ifdef DEBUG_SENSOR
-
-  ESP_LOGI(TAG, "Sensor reading is %f mW/cm^2", ms->uv);
-
-#endif
 }
 
 } // namespace sensor

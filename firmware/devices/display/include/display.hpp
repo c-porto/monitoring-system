@@ -15,7 +15,7 @@ public:
   void init();
   void display_str(char *, int, int);
   static void initilize() { initialized_ = true; }
-  friend Display &operator<<(Display &ds, sensor::MeasureP ms);
+  Display &operator<<(sensor::MeasureP ms);
   [[nodiscard]] static bool is_initialized() noexcept { return initialized_; }
 
 private:
