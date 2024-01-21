@@ -1,0 +1,3 @@
+*  Rust server expects:
+** .env file in the same directory as it is run.
+With a db url like -> DB_URL="sqlite://sqlite.db"
