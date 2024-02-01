@@ -10,24 +10,25 @@
 
 static int create_json_obj(sensor::Measure *ms, char *obj_string);
 
-static const logs::Logger log{"Http Task"};
+static const logs::Logger log{ "Http Task" };
 
 void http_client_task(void *sample_ptr)
 {
-    sensor::MeasureP sample = static_cast<sensor::Measure *>(sample_ptr);
+	sensor::MeasureP sample = static_cast<sensor::Measure *>(sample_ptr);
 
-    while (true)
-    {
-        xEventGroupWaitBits(event_group, SENSOR_READ_EVENT, pdTRUE, pdTRUE, portMAX_DELAY);
+	while (true) {
+		xEventGroupWaitBits(event_group, SENSOR_READ_EVENT, pdTRUE,
+				    pdTRUE, portMAX_DELAY);
 
-        mutex_lock(mutex, 500U);
+		mutex_lock(mutex, 500U);
 
-        sensor::Measure s_cpy{sample->uv, sample->temp, sample->air, sample->hm};
+		sensor::Measure s_cpy{ sample->uv, sample->temp, sample->air,
+				       sample->hm };
 
-        mutex_unlock(mutex);
+		mutex_unlock(mutex);
 
-        Result res = http_send_sample(&s_cpy);
+		Result res = http_send_sample(&s_cpy);
 
-        log << res;
-    }
+		log << res;
+	}
 }
