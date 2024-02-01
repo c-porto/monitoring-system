@@ -3,8 +3,8 @@ use std::f64;
 use anyhow::Result;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use dotenv;
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiRef {
@@ -13,18 +13,9 @@ pub struct ApiRef {
     project: String,
 }
 
-impl ApiRef {
-    fn new(version: String, name: String, project: String) -> Self {
-        Self {
-            version,
-            name,
-            project,
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, FromRow)]
 pub struct MeasurementSample {
+    time: String,
     temp: f64,
     humidity: f64,
     light: f64,
@@ -32,8 +23,9 @@ pub struct MeasurementSample {
 }
 
 impl MeasurementSample {
-    fn new(temp: f64, humidity: f64, light: f64, air: f64) -> Self {
+    fn new(time: String, temp: f64, humidity: f64, light: f64, air: f64) -> Self {
         Self {
+            time,
             temp,
             humidity,
             light,
@@ -60,31 +52,11 @@ pub async fn update_ui_handler() -> Result<Json<MeasurementSample>> {
 pub async fn get_api_ref() -> Json<ApiRef> {
     println!("API_REFERENCE endpoint hit");
 
-    let env_version: String = match std::env::var("VERSION") {
-        Ok(v) => v,
-        Err(err) => {
-            println!("Missing VERSION variable: {}", err);
-            String::from("v0.1.0")
-        }
+    let api_version = ApiRef {
+        version: "v0.1.0".to_string(),
+        name: "Reference API".to_string(),
+        project: "monitoring-system".to_string(),
     };
-
-    let env_name: String = match std::env::var("NAME") {
-        Ok(n) => n,
-        Err(err) => {
-            println!("Missing NAME variable: {}", err);
-            String::from("API_REFERENCE")
-        }
-    };
-
-    let env_project: String = match std::env::var("PROJECT") {
-        Ok(n) => n,
-        Err(err) => {
-            println!("Missing PROJECT variable: {}", err);
-            String::from("monitoring-system")
-        }
-    };
-
-    let api_version = ApiRef::new(env_version, env_name, env_project);
 
     Json(api_version)
 }

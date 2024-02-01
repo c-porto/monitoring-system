@@ -1,9 +1,10 @@
 use anyhow::Result;
-use axum::{Router,extract::{Extension}};
-use sqlx::SqlitePool;
-use std::net::SocketAddr;
+use axum::{extract::Extension, Router};
 use db::db_init;
 use router::routes;
+use sqlx::SqlitePool;
+use std::net::SocketAddr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 mod db;
 mod handlers;
@@ -27,11 +28,25 @@ async fn main() -> Result<()> {
 
     let pool = SqlitePool::connect(db_url.as_str()).await?;
 
-    let routes_all = Router::new().merge(routes()).layer(Extension(pool));
+    let routes_all = Router::new().merge(router::routes()).layer(Extension(pool));
 
     let addr: SocketAddr = "0.0.0.0:42068".parse().unwrap();
 
+    // Used to log a simple time reference
+    tokio::task::spawn(async {
+        loop {
+            let local = chrono::prelude::Local::now();
+
+            let date = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
+
+            println!("Server time: {}", date);
+
+            tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+        }
+    });
+
     println!("Listening to port 42068");
+
     axum::Server::bind(&addr)
         .serve(routes_all.into_make_service())
         .await?;
