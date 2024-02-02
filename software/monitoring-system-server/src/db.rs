@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::Result;
 use sqlx::{migrate::MigrateDatabase, Sqlite};
 
 pub async fn db_init(db_url: &str) -> Result<()> {
@@ -17,4 +17,3 @@ pub async fn db_init(db_url: &str) -> Result<()> {
 
     Ok(())
 }
-

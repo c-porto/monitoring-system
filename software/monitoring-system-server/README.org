@@ -1,3 +1,22 @@
 *  Rust server expects:
+
 ** .env file in the same directory as it is run.
-With a db url like -> DB_URL="sqlite://sqlite.db"
+
+With a db url like -> DATABASE_URL="sqlite://sqlite.db"
+
+#+begin_src bash
+echo 'DATABASE_URL="sqlite://sqlite.db"' > .env
+#+end_src
+
+** After adding the database url it is expected that the database is created using sqlx-cli:
+
+#+begin_src bash
+mkdir db && sqlx database create
+#+end_src
+
+#+begin_src bash
+sqlx migrate run
+#+end_src
+
+
+

@@ -1,0 +1,12 @@
+* Software part of monitoring system
+
+** Server 
+
+To make the server functional is necessary to follow the steps in the monitoring-system-server README.
+With that done the following steps are as simple as:
+
+#+begin_src bash
+docker compose up --build
+#+end_src
+
+

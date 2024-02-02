@@ -1,10 +1,8 @@
 use anyhow::Result;
 use axum::{extract::Extension, Router};
 use db::db_init;
-use router::routes;
 use sqlx::SqlitePool;
 use std::net::SocketAddr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 mod db;
 mod handlers;
@@ -19,7 +17,7 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let db_url = std::env::var("DB_URL")?;
+    let db_url = std::env::var("DATABASE_URL")?;
 
     if let Err(err) = db_init(db_url.as_str()).await {
         eprintln!("Creating database resulted in error: {}", err);
@@ -27,20 +25,17 @@ async fn main() -> Result<()> {
     }
 
     let pool = SqlitePool::connect(db_url.as_str()).await?;
+    sqlx::migrate!().run(&pool).await?;
 
     let routes_all = Router::new().merge(router::routes()).layer(Extension(pool));
-
     let addr: SocketAddr = "0.0.0.0:42068".parse().unwrap();
 
     // Used to log a simple time reference
     tokio::task::spawn(async {
         loop {
             let local = chrono::prelude::Local::now();
-
             let date = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
-
             println!("Server time: {}", date);
-
             tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
         }
     });

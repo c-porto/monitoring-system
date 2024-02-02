@@ -1,10 +1,9 @@
-use std::f64;
-
-use anyhow::Result;
-use axum::response::{IntoResponse, Response};
-use axum::Json;
+use axum::response::IntoResponse;
+use axum::{Extension, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
+use sqlx::SqlitePool;
+use std::f64;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiRef {
@@ -22,31 +21,59 @@ pub struct MeasurementSample {
     air: f64,
 }
 
-impl MeasurementSample {
-    fn new(time: String, temp: f64, humidity: f64, light: f64, air: f64) -> Self {
-        Self {
-            time,
-            temp,
-            humidity,
-            light,
-            air,
+pub async fn post_measuring_handler(
+    Extension(pool): Extension<SqlitePool>,
+    Json(payload): Json<MeasurementSample>,
+) -> impl IntoResponse {
+    println!("Post measure endpoint hit");
+
+    let sample: MeasurementSample = payload;
+
+    println!("Data received: {:?}", sample);
+
+    let result = sqlx::query!(
+        r#"
+        INSERT INTO measurement_samples (time, temp, humidity, light, air)
+        VALUES (?, ?, ?, ?, ?)
+        "#,
+        sample.time,
+        sample.temp,
+        sample.humidity,
+        sample.light,
+        sample.air
+    )
+    .execute(&pool)
+    .await;
+
+    match result {
+        Ok(res) => {
+            println!(
+                "Sucessfully added new sample\nRows affected: {}",
+                res.rows_affected()
+            );
+            "Ok"
+        }
+        Err(_) => {
+            println!("Failed to added new sample in database");
+            "Error"
         }
     }
 }
 
-#[derive(Serialize, Debug)]
-#[serde(transparent)]
-pub struct MeasurementsData {
-    dataset: Vec<MeasurementSample>,
-}
+pub async fn update_ui_handler(
+    Extension(pool): Extension<SqlitePool>,
+) -> Json<Vec<MeasurementSample>> {
+    let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
+        .fetch_all(&pool)
+        .await;
 
-pub async fn post_measuring_handler(Json(payload): Json<MeasurementSample>) -> impl IntoResponse {
-    let data = payload;
-    todo!();
-}
-
-pub async fn update_ui_handler() -> Result<Json<MeasurementSample>> {
-    todo!();
+    if let Ok(samples) = db_samples {
+        Json(samples)
+    } else {
+        let empty: Vec<MeasurementSample> = vec![];
+        println!("Error fetching data in database");
+        Json(empty)
+    }
 }
 
 pub async fn get_api_ref() -> Json<ApiRef> {
@@ -59,4 +86,10 @@ pub async fn get_api_ref() -> Json<ApiRef> {
     };
 
     Json(api_version)
+}
+
+pub async fn get_measuring_handler() -> &'static str {
+    println!("Get measure endpoint hit");
+
+    "Please use this endpoint to post measuments"
 }
