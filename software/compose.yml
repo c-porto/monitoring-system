@@ -1,0 +1,10 @@
+name: monitoring-system
+services:
+  backend:
+    build:
+      context: ./monitoring-system-server
+      dockerfile: Dockerfile
+    ports:
+      - 42068:42068
+    volumes:
+      - ./monitoring-system-server/db:/db

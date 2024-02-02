@@ -1,0 +1,5 @@
+dependencies:
+  idf:
+    version: ">=5.0"
+  espressif/esp-idf-cxx:
+    version: "1.0.1-beta"
