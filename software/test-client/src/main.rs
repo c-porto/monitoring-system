@@ -16,7 +16,7 @@ struct MeasurementSample {
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut rng = rand::thread_rng();
-    for _i in 0..100 {
+    for _i in 0..50 {
         let local = chrono::prelude::Local::now();
         let date = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
 

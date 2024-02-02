@@ -12,7 +12,7 @@ pub struct ApiRef {
     project: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, FromRow)]
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
 pub struct MeasurementSample {
     time: String,
     temp: f64,
@@ -63,16 +63,24 @@ pub async fn post_measuring_handler(
 pub async fn update_ui_handler(
     Extension(pool): Extension<SqlitePool>,
 ) -> Json<Vec<MeasurementSample>> {
+    println!("Get all data endpoint hit");
+
     let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
         .fetch_all(&pool)
         .await;
 
     if let Ok(samples) = db_samples {
-        Json(samples)
+        let sz = samples.len();
+        if sz > 100 {
+            let l = sz - 100;
+            let new_samples = samples[l..sz].iter().cloned().collect();
+            return Json(new_samples);
+        }
+        return Json(samples);
     } else {
         let empty: Vec<MeasurementSample> = vec![];
         println!("Error fetching data in database");
-        Json(empty)
+        return Json(empty);
     }
 }
 
