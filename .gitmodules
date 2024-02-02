@@ -1,3 +1,0 @@
-[submodule "software/linux_host/third_party/abseil-cpp"]
-	path = software/linux_host/third_party/abseil-cpp
-	url = https://github.com/abseil/abseil-cpp.git

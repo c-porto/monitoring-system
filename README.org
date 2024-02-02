@@ -1,0 +1,32 @@
+* Monitoring-system project.
+
+Repository dedicated to developing EEL7801 project in all of it's details
+
+** Project Structure.
+
+*** Firmware.
+
+Simple firmware project based on the ESP32 WROOM board, used to sample 
+enviromental data such as temperature, humidity, ultraviolet irradiance, etc.
+The application sends posts requests to the server, requests which are made 
+of one "round" of measurements, meaning that it contains the last measurement 
+of each sensor.
+
+*** Software
+
+Separated even further in Server and Frontend.
+
+**** Server 
+
+The server basically receives the data from ESP32 and stores it in the sqlite 
+database, also provides api endpoints to retreive the data.
+
+**** Frontend 
+
+The frontend is the webpage designed to show the graph of each measurement type.
+To be implemented.
+
+
+ 
+
+

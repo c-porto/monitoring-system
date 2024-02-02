@@ -7,7 +7,7 @@ Which can be installed in: https://www.rust-lang.org/tools/install
 ** A .env file in cargo project root.
 
 #+begin_src bash
-echo 'DATABASE_URL="sqlite://sqlite.db"' > .env
+echo 'DATABASE_URL="sqlite://db/sqlite.db"' > .env
 #+end_src
 
 ** After adding the database url it is expected that the database is created using sqlx-cli:
