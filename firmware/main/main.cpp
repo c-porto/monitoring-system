@@ -30,6 +30,6 @@ extern "C" void app_main(void)
     /* Creates event groups*/
     create_event_groups();
     /* Creates tasks */
-    create_tasks(static_cast<void *>(&::ms));
+    create_tasks(static_cast<void *>(&ms));
     /* Espressif-idf Framework starts the FreeRTOS scheduler automatically*/
 }

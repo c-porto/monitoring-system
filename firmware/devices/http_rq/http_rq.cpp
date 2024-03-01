@@ -49,6 +49,7 @@ exit:
 Result http_send_sample(sensor::MeasureP sample)
 {
 	char *obj_string = nullptr;
+
 	if (create_json_obj(sample, obj_string) < 0) {
 		return Result::Err;
 	}

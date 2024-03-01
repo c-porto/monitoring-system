@@ -34,7 +34,7 @@ class __aht10 {
 	bool isBusy(bool forceFresh = true);
 };
 }
-class Aht10 : public Sensor {
+class Aht10 final : public Sensor {
     public:
 	void read(MeasureP data);
 	void init();
