@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio;
 
 #[derive(Deserialize, Serialize, Debug)]
-struct MeasurementSample {
-    time: String,
+struct TestData {
     temp: f64,
     humidity: f64,
     light: f64,
@@ -17,11 +16,8 @@ struct MeasurementSample {
 async fn main() -> Result<()> {
     let mut rng = rand::thread_rng();
     for _i in 0..50 {
-        let local = chrono::prelude::Local::now();
-        let date = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
 
-        let payload = MeasurementSample {
-            time: date,
+        let payload = TestData {
             light: rng.gen(),
             air: rng.gen(),
             temp: rng.gen(),

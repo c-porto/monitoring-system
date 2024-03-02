@@ -21,13 +21,32 @@ pub struct MeasurementSample {
     air: f64,
 }
 
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
+pub struct DataFromSensors {
+    temp: f64,
+    humidity: f64,
+    light: f64,
+    air: f64,
+}
+
 pub async fn post_measuring_handler(
     Extension(pool): Extension<SqlitePool>,
-    Json(payload): Json<MeasurementSample>,
+    Json(payload): Json<DataFromSensors>,
 ) -> impl IntoResponse {
     println!("Post measure endpoint hit");
 
-    let sample: MeasurementSample = payload;
+    let data: DataFromSensors = payload;
+
+    let local = chrono::prelude::Local::now();
+    let time = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
+    
+    let sample = MeasurementSample {
+        time,
+        temp: data.temp,
+        humidity: data.humidity,
+        light: data.light,
+        air: data.air,
+    };
 
     println!("Data received: {:?}", sample);
 
