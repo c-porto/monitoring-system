@@ -16,6 +16,8 @@ void http_client_task(void *sample_ptr)
 {
 	sensor::MeasureP sample = static_cast<sensor::Measure *>(sample_ptr);
 
+    wifi_init();
+
 	while (true) {
 		xEventGroupWaitBits(event_group, SENSOR_READ_EVENT, pdTRUE,
 				    pdTRUE, portMAX_DELAY);

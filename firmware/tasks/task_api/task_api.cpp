@@ -32,13 +32,11 @@ void create_tasks(void *sample_ptr)
 		ESP_LOGI(::TAG, "Failed to create Sensor Read Task");
 		std::exit(1);
 	}
-	/*
-	if (xTaskCreatePinnedToCore(http_client_task, "Http Task", 2048U,
+	if (xTaskCreatePinnedToCore(http_client_task, "Http Task", 10000U,
 				    sample_ptr, 5U, NULL, 1) == pdFAIL) {
 		ESP_LOGI(::TAG, "Failed to create Http Client Task");
 		std::exit(1);
 	}
-    */
 }
 
 /* Creates event_group */
