@@ -203,7 +203,7 @@ Result http_send_sample(sensor::MeasureP sample)
 	}
 
 	esp_http_client_config_t cfg = {
-		.host = "http://0.0.0.0:42068",
+		.host = "0.0.0.0:42068",
 		.path = "/api/post_ms",
 		.event_handler = _http_event_handler,
 		.transport_type = HTTP_TRANSPORT_OVER_TCP,
@@ -215,7 +215,6 @@ Result http_send_sample(sensor::MeasureP sample)
 	/* This if statement is absolutely not necessary, its only here 
      * to suppress the -Wnonnull warning/errors. */
 	if (obj_string) {
-		esp_http_client_set_url(client, "0.0.0.0:42068/api/post_ms");
 		esp_http_client_set_method(client, HTTP_METHOD_POST);
 		esp_http_client_set_header(client, "Content-Type",
 					   "application/json");
