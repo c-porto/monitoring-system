@@ -282,6 +282,8 @@ void Aht10::init()
 
 void Aht10::read(MeasureP data)
 {
+    dev_.readRawData();
+
 	temp_ = static_cast<double>(dev_.getTemperature());
 	hm_ = static_cast<double>(dev_.getHumidity());
 

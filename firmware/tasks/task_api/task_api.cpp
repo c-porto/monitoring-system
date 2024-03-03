@@ -27,7 +27,7 @@ EventGroupHandle_t event_group;
 void create_tasks(void *sample_ptr)
 {
 	if (xTaskCreatePinnedToCore(sensor_read_task, "Sensor Read Task",
-				    2048UL, sample_ptr, 5U, NULL,
+				    4098UL, sample_ptr, 5U, NULL,
 				    0) == pdFAIL) {
 		ESP_LOGI(::TAG, "Failed to create Sensor Read Task");
 		std::exit(1);
