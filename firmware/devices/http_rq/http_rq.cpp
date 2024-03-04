@@ -161,27 +161,33 @@ static int create_json_obj(sensor::Measure *ms, char *obj_string)
 
 	if (cJSON_AddNumberToObject(sample, "temp", ms->temp) == NULL) {
 		err = -1;
+		ESP_LOGE(TAG, "Error adding temperature to object");
 		goto exit;
 	}
 
-	if (cJSON_AddNumberToObject(sample, "hm", ms->hm) == NULL) {
+	if (cJSON_AddNumberToObject(sample, "humidity", ms->hm) == NULL) {
 		err = -1;
+		ESP_LOGE(TAG, "Error adding humidity to object");
 		goto exit;
 	}
 
-	if (cJSON_AddNumberToObject(sample, "uv", ms->uv) == NULL) {
+	if (cJSON_AddNumberToObject(sample, "light", ms->uv) == NULL) {
 		err = -1;
+		ESP_LOGE(TAG, "Error adding light to object");
 		goto exit;
 	}
 
 	if (cJSON_AddNumberToObject(sample, "air", ms->air) == NULL) {
 		err = -1;
+		ESP_LOGE(TAG, "Error adding air to object");
 		goto exit;
 	}
 
 	obj_string = cJSON_Print(sample);
 
-	if (obj_string == NULL) {
+	if (obj_string) {
+		ESP_LOGI(TAG, "%s", obj_string);
+	} else {
 		err = -1;
 		log << "Couldn't create the json object";
 	}
@@ -203,7 +209,7 @@ Result http_send_sample(sensor::MeasureP sample)
 	}
 
 	esp_http_client_config_t cfg = {
-		.host = "0.0.0.0:42068",
+		.host = "http://0.0.0.0:42068",
 		.path = "/api/post_ms",
 		.event_handler = _http_event_handler,
 		.transport_type = HTTP_TRANSPORT_OVER_TCP,

@@ -8,8 +8,6 @@
 #include "http_rq.hpp"
 #include "utils.hpp"
 
-static int create_json_obj(sensor::Measure *ms, char *obj_string);
-
 static const logs::Logger log{ "Http Task" };
 
 void http_client_task(void *sample_ptr)
