@@ -1,0 +1,12 @@
+[tool.pyright]
+# Specify the Python version used for type checking
+pythonVersion = "3.10.12"
+
+# Enable or disable strict mode
+strict = true
+
+venvPath = "./venv/"
+
+# Configure which directories should be included or excluded from analysis
+[tool.pyright.includeFiles]
+include = ["*.py"]

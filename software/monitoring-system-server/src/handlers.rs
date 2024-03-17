@@ -48,7 +48,7 @@ pub async fn post_measuring_handler(
         air: data.air,
     };
 
-    println!("Data received: {:?}", sample);
+    println!("Data received: {:?}\n", sample);
 
     let result = sqlx::query!(
         r#"
@@ -67,13 +67,13 @@ pub async fn post_measuring_handler(
     match result {
         Ok(res) => {
             println!(
-                "Sucessfully added new sample\nRows affected: {}",
+                "Sucessfully added new sample\nRows affected: {}\n",
                 res.rows_affected()
             );
             "Ok"
         }
         Err(_) => {
-            println!("Failed to added new sample in database");
+            println!("Failed to added new sample in database\n");
             "Error"
         }
     }
@@ -82,7 +82,7 @@ pub async fn post_measuring_handler(
 pub async fn update_ui_handler(
     Extension(pool): Extension<SqlitePool>,
 ) -> Json<Vec<MeasurementSample>> {
-    println!("Get all data endpoint hit");
+    println!("Get data endpoint hit");
 
     let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
         .fetch_all(&pool)
@@ -95,6 +95,24 @@ pub async fn update_ui_handler(
             let new_samples = samples[l..sz].iter().cloned().collect();
             return Json(new_samples);
         }
+        return Json(samples);
+    } else {
+        let empty: Vec<MeasurementSample> = vec![];
+        println!("Error fetching data in database");
+        return Json(empty);
+    }
+}
+
+pub async fn get_all_data(
+    Extension(pool): Extension<SqlitePool>,
+) -> Json<Vec<MeasurementSample>> {
+    println!("Get all data endpoint hit");
+
+    let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
+        .fetch_all(&pool)
+        .await;
+
+    if let Ok(samples) = db_samples {
         return Json(samples);
     } else {
         let empty: Vec<MeasurementSample> = vec![];
