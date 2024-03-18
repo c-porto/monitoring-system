@@ -8,3 +8,11 @@ services:
       - 42068:42068
     volumes:
       - ./monitoring-system-server/db:/db
+  data-visualization:
+    build:
+      context: ./monitoring-data-analysis
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_started
+        

@@ -102,23 +102,21 @@ def plot_sample_graph(samples: dict[Metrics, list]):
 
     return fig
 
-def plot_visuals(display_flags: list[bool], data: dict[Metrics, list] | None = None, ep: str | None = None):
-    dist_fig = None
-    graph_fig = None
+def plot_visuals(display_flags: list[bool], ep: str | None = None):
+    data = {}
 
-    if data == None and ep == None:
+    if ep == None:
         return 
-
-    if data == None and ep != None:
+    else:
         data = prepare_samples_for_plotting(ep)
 
     plt.style.use('dark_background')
 
     if display_flags[0] and data:
-        graph_fig = plot_sample_graph(data)
+        plot_sample_graph(data)
 
     if display_flags[1] and data: 
-        dist_fig = plot_sample_dist(data)
+        plot_sample_dist(data)
 
     if any(display_flags) and data:
         plt.show(block=False)

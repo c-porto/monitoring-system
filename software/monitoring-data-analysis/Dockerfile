@@ -13,5 +13,5 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Command to run the application
-CMD ["python", "main.py", "-g", "-d"]
+CMD ["python", "-u", "main.py", "--docker"]
 
