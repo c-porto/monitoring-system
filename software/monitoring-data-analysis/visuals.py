@@ -107,8 +107,8 @@ def plot_visuals(display_flags: list[bool], ep: str | None = None):
 
     if ep == None:
         return 
-    else:
-        data = prepare_samples_for_plotting(ep)
+     
+    data = prepare_samples_for_plotting(ep)
 
     plt.style.use('dark_background')
 
