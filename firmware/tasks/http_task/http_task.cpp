@@ -8,13 +8,15 @@
 #include "http_rq.hpp"
 #include "utils.hpp"
 
-static int create_json_obj(sensor::Measure *ms, char *obj_string);
-
 static const logs::Logger log{ "Http Task" };
 
 void http_client_task(void *sample_ptr)
 {
 	sensor::MeasureP sample = static_cast<sensor::Measure *>(sample_ptr);
+
+    wifi_init();
+
+    vTaskDelay(pdMS_TO_TICKS(10000U));
 
 	while (true) {
 		xEventGroupWaitBits(event_group, SENSOR_READ_EVENT, pdTRUE,

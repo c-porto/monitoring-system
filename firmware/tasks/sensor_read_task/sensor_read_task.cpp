@@ -19,21 +19,26 @@ const logs::Logger log{ "Sensor Read Task" };
 sensor::Display display;
 sensor::Cjmcu811 cjmcu;
 sensor::Gyml8511 gyml;
-sensor::Aht10 aht{ 12, 14 };
-std::vector<sensor::Sensor *> sensors = { &gyml, &cjmcu, &aht };
+std::vector<sensor::Sensor *> sensors = { &gyml, &cjmcu };
 } // namespace
 
 void sensor_read_task(void *sample_ptr)
 {
 	sensor::Measure *sample = static_cast<sensor::Measure *>(sample_ptr);
 
-	TickType_t last_cycle = xTaskGetTickCount();
+	sensor::Aht10 aht{ 12, 14 };
 
 	display.init();
+
+	sensors.push_back(&aht);
 
 	for (auto &sensor : sensors) {
 		sensor->init();
 	}
+
+    vTaskDelay(pdMS_TO_TICKS(5000U));
+
+	TickType_t last_cycle = xTaskGetTickCount();
 
 	while (true) {
 		mutex_lock(mutex, 500U);

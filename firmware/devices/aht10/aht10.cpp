@@ -282,10 +282,14 @@ void Aht10::init()
 
 void Aht10::read(MeasureP data)
 {
+    dev_.readRawData();
+
 	temp_ = static_cast<double>(dev_.getTemperature());
 	hm_ = static_cast<double>(dev_.getHumidity());
+
 	ESP_LOGI(::TAG, "The temperature read was %f\n", temp_);
 	ESP_LOGI(::TAG, "The humidity read was %f\n", hm_);
+
 	data->hm = hm_;
 	data->temp = temp_;
 }

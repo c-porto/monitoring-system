@@ -12,7 +12,7 @@ pub struct ApiRef {
     project: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, FromRow)]
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
 pub struct MeasurementSample {
     time: String,
     temp: f64,
@@ -21,15 +21,34 @@ pub struct MeasurementSample {
     air: f64,
 }
 
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
+pub struct DataFromSensors {
+    temp: f64,
+    humidity: f64,
+    light: f64,
+    air: f64,
+}
+
 pub async fn post_measuring_handler(
     Extension(pool): Extension<SqlitePool>,
-    Json(payload): Json<MeasurementSample>,
+    Json(payload): Json<DataFromSensors>,
 ) -> impl IntoResponse {
     println!("Post measure endpoint hit");
 
-    let sample: MeasurementSample = payload;
+    let data: DataFromSensors = payload;
 
-    println!("Data received: {:?}", sample);
+    let local = chrono::prelude::Local::now();
+    let time = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
+    
+    let sample = MeasurementSample {
+        time,
+        temp: data.temp,
+        humidity: data.humidity,
+        light: data.light,
+        air: data.air,
+    };
+
+    println!("Data received: {:?}\n", sample);
 
     let result = sqlx::query!(
         r#"
@@ -48,13 +67,13 @@ pub async fn post_measuring_handler(
     match result {
         Ok(res) => {
             println!(
-                "Sucessfully added new sample\nRows affected: {}",
+                "Sucessfully added new sample\nRows affected: {}\n",
                 res.rows_affected()
             );
             "Ok"
         }
         Err(_) => {
-            println!("Failed to added new sample in database");
+            println!("Failed to added new sample in database\n");
             "Error"
         }
     }
@@ -63,16 +82,42 @@ pub async fn post_measuring_handler(
 pub async fn update_ui_handler(
     Extension(pool): Extension<SqlitePool>,
 ) -> Json<Vec<MeasurementSample>> {
+    println!("Get data endpoint hit");
+
     let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
         .fetch_all(&pool)
         .await;
 
     if let Ok(samples) = db_samples {
-        Json(samples)
+        let sz = samples.len();
+        if sz > 100 {
+            let l = sz - 100;
+            let new_samples = samples[l..sz].iter().cloned().collect();
+            return Json(new_samples);
+        }
+        return Json(samples);
     } else {
         let empty: Vec<MeasurementSample> = vec![];
         println!("Error fetching data in database");
-        Json(empty)
+        return Json(empty);
+    }
+}
+
+pub async fn get_all_data(
+    Extension(pool): Extension<SqlitePool>,
+) -> Json<Vec<MeasurementSample>> {
+    println!("Get all data endpoint hit");
+
+    let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
+        .fetch_all(&pool)
+        .await;
+
+    if let Ok(samples) = db_samples {
+        return Json(samples);
+    } else {
+        let empty: Vec<MeasurementSample> = vec![];
+        println!("Error fetching data in database");
+        return Json(empty);
     }
 }
 
