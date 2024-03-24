@@ -16,6 +16,8 @@ void http_client_task(void *sample_ptr)
 
     wifi_init();
 
+    vTaskDelay(pdMS_TO_TICKS(10000U));
+
 	while (true) {
 		xEventGroupWaitBits(event_group, SENSOR_READ_EVENT, pdTRUE,
 				    pdTRUE, portMAX_DELAY);

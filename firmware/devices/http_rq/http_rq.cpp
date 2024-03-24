@@ -154,7 +154,7 @@ void wifi_init(void)
 	vEventGroupDelete(s_wifi_event_group);
 }
 
-static int create_json_obj(sensor::Measure *ms, char *obj_string)
+static int create_json_obj(sensor::Measure *ms, char **obj_string)
 {
 	int err = 0;
 	cJSON *sample = cJSON_CreateObject();
@@ -183,10 +183,10 @@ static int create_json_obj(sensor::Measure *ms, char *obj_string)
 		goto exit;
 	}
 
-	obj_string = cJSON_Print(sample);
+	*obj_string = cJSON_Print(sample);
 
-	if (obj_string) {
-		ESP_LOGI(TAG, "%s", obj_string);
+	if (*obj_string) {
+		ESP_LOGI(TAG, "%s", *obj_string);
 	} else {
 		err = -1;
 		log << "Couldn't create the json object";
@@ -200,45 +200,37 @@ exit:
 Result http_send_sample(sensor::MeasureP sample)
 {
 	char *obj_string = nullptr;
-	uint8_t buffer[513] = { 0 };
 	esp_err_t err;
 	Result res = Result::Ok;
 
-	if (create_json_obj(sample, obj_string) < 0) {
+	if (create_json_obj(sample, &obj_string) < 0) {
 		return Result::Err;
 	}
 
 	esp_http_client_config_t cfg = {
-		.host = "http://0.0.0.0:42068",
-		.path = "/api/post_ms",
-		.event_handler = _http_event_handler,
-		.transport_type = HTTP_TRANSPORT_OVER_TCP,
-		.user_data = buffer,
+		.host = __LOCAL_ENDPOINT,
+		.port = __LOCAL_PORT,
+		.auth_type = HTTP_AUTH_TYPE_NONE,
+		.path = __LOCAL_PATH,
+		.skip_cert_common_name_check = true,
 	};
 
 	esp_http_client_handle_t client = esp_http_client_init(&cfg);
 
-	/* This if statement is absolutely not necessary, its only here 
-     * to suppress the -Wnonnull warning/errors. */
-	if (obj_string) {
-		esp_http_client_set_method(client, HTTP_METHOD_POST);
-		esp_http_client_set_header(client, "Content-Type",
-					   "application/json");
-		esp_http_client_set_post_field(client, obj_string,
-					       strlen(obj_string));
-		err = esp_http_client_perform(client);
+	esp_http_client_set_method(client, HTTP_METHOD_POST);
+	esp_http_client_set_header(client, "Content-Type", "application/json");
+	esp_http_client_set_post_field(client, obj_string, strlen(obj_string));
+	err = esp_http_client_perform(client);
 
-		if (err == ESP_OK) {
-			ESP_LOGI(
-				TAG,
-				"HTTP PATCH Status = %d, content_length = %" PRId64,
-				esp_http_client_get_status_code(client),
-				esp_http_client_get_content_length(client));
-		} else {
-			ESP_LOGE(TAG, "HTTP PATCH request failed: %s",
-				 esp_err_to_name(err));
-			res = Result::Err;
-		}
+	if (err == ESP_OK) {
+		ESP_LOGI(TAG,
+			 "HTTP PATCH Status = %d, content_length = %" PRId64,
+			 esp_http_client_get_status_code(client),
+			 esp_http_client_get_content_length(client));
+	} else {
+		ESP_LOGE(TAG, "HTTP PATCH request failed: %s",
+			 esp_err_to_name(err));
+		res = Result::Err;
 	}
 
 	esp_http_client_cleanup(client);

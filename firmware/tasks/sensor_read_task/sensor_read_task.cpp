@@ -36,6 +36,8 @@ void sensor_read_task(void *sample_ptr)
 		sensor->init();
 	}
 
+    vTaskDelay(pdMS_TO_TICKS(5000U));
+
 	TickType_t last_cycle = xTaskGetTickCount();
 
 	while (true) {
