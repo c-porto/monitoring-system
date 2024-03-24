@@ -14,18 +14,17 @@ of each sensor.
 
 *** Software
 
-Separated even further in Server and Frontend.
+Separated even further in Server and Data Analysis.
 
 **** Server 
 
 The server basically receives the data from ESP32 and stores it in the sqlite 
 database, also provides api endpoints to retreive the data.
 
-**** Frontend 
+**** Data Analysis 
 
-The frontend is the webpage designed to show the graph of each measurement type.
-To be implemented.
-
+Data Analysis basically fetches the sensor samples data from the server and 
+provides CLI and/or graphical statistics about the data.
 
  
 
