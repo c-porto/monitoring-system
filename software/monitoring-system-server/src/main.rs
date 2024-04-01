@@ -1,10 +1,8 @@
 use anyhow::Result;
 use axum::{extract::Extension, Router};
-use db::db_init;
-use sqlx::SqlitePool;
+use sqlx::postgres::PgPoolOptions;
 use std::net::SocketAddr;
 
-mod db;
 mod handlers;
 mod router;
 
@@ -19,13 +17,12 @@ async fn main() -> Result<()> {
 
     let db_url = std::env::var("DATABASE_URL")?;
 
-    if let Err(err) = db_init(db_url.as_str()).await {
-        eprintln!("Creating database resulted in error: {}", err);
-        std::process::exit(1);
-    }
+    let pool = PgPoolOptions::new()
+        .max_connections(10)
+        .connect(db_url.as_str())
+        .await?;
 
-    let pool = SqlitePool::connect(db_url.as_str()).await?;
-    sqlx::migrate!().run(&pool).await?;
+    sqlx::migrate!("./migrations").run(&pool).await?;
 
     let routes_all = Router::new().merge(router::routes()).layer(Extension(pool));
     let addr: SocketAddr = "0.0.0.0:42068".parse().unwrap();

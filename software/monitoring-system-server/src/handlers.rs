@@ -2,8 +2,7 @@ use axum::response::IntoResponse;
 use axum::{Extension, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
-use sqlx::SqlitePool;
-use std::f64;
+use sqlx::PgPool;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiRef {
@@ -15,22 +14,22 @@ pub struct ApiRef {
 #[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
 pub struct MeasurementSample {
     time: String,
-    temp: f64,
-    humidity: f64,
-    light: f64,
-    air: f64,
+    temp: f32,
+    humidity: f32,
+    light: f32,
+    air: f32,
 }
 
 #[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
 pub struct DataFromSensors {
-    temp: f64,
-    humidity: f64,
-    light: f64,
-    air: f64,
+    temp: f32,
+    humidity: f32,
+    light: f32,
+    air: f32,
 }
 
 pub async fn post_measuring_handler(
-    Extension(pool): Extension<SqlitePool>,
+    Extension(pool): Extension<PgPool>,
     Json(payload): Json<DataFromSensors>,
 ) -> impl IntoResponse {
     println!("Post measure endpoint hit");
@@ -39,7 +38,7 @@ pub async fn post_measuring_handler(
 
     let local = chrono::prelude::Local::now();
     let time = local.format("[%Y/%m/%d - %H:%M:%S]").to_string();
-    
+
     let sample = MeasurementSample {
         time,
         temp: data.temp,
@@ -50,17 +49,12 @@ pub async fn post_measuring_handler(
 
     println!("Data received: {:?}\n", sample);
 
-    let result = sqlx::query!(
-        r#"
-        INSERT INTO measurement_samples (time, temp, humidity, light, air)
-        VALUES (?, ?, ?, ?, ?)
-        "#,
-        sample.time,
-        sample.temp,
-        sample.humidity,
-        sample.light,
-        sample.air
-    )
+    let result = sqlx::query("INSERT INTO measurement_samples (time, temp, humidity, light, air) VALUES ($1, $2, $3, $4, $5)")
+    .bind(sample.time)
+    .bind(sample.temp)
+    .bind(sample.humidity)
+    .bind(sample.light)
+    .bind(sample.air)
     .execute(&pool)
     .await;
 
@@ -79,14 +73,13 @@ pub async fn post_measuring_handler(
     }
 }
 
-pub async fn update_ui_handler(
-    Extension(pool): Extension<SqlitePool>,
-) -> Json<Vec<MeasurementSample>> {
+pub async fn update_ui_handler(Extension(pool): Extension<PgPool>) -> Json<Vec<MeasurementSample>> {
     println!("Get data endpoint hit");
 
-    let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
-        .fetch_all(&pool)
-        .await;
+    let db_samples: Result<Vec<MeasurementSample>, sqlx::Error> =
+        sqlx::query_as("SELECT * FROM measurement_samples")
+            .fetch_all(&pool)
+            .await;
 
     if let Ok(samples) = db_samples {
         let sz = samples.len();
@@ -103,21 +96,22 @@ pub async fn update_ui_handler(
     }
 }
 
-pub async fn get_all_data(
-    Extension(pool): Extension<SqlitePool>,
-) -> Json<Vec<MeasurementSample>> {
+pub async fn get_all_data(Extension(pool): Extension<PgPool>) -> Json<Vec<MeasurementSample>> {
     println!("Get all data endpoint hit");
 
-    let db_samples = sqlx::query_as!(MeasurementSample, "SELECT * FROM measurement_samples")
-        .fetch_all(&pool)
-        .await;
+    let db_samples: Result<Vec<MeasurementSample>, sqlx::Error> =
+        sqlx::query_as("SELECT * FROM measurement_samples")
+            .fetch_all(&pool)
+            .await;
 
-    if let Ok(samples) = db_samples {
-        return Json(samples);
-    } else {
-        let empty: Vec<MeasurementSample> = vec![];
-        println!("Error fetching data in database");
-        return Json(empty);
+    match db_samples {
+        Ok(samples) => return Json(samples),
+        Err(err) => {
+            let empty: Vec<MeasurementSample> = vec![];
+            println!("Postgresql Error: {}", err);
+            println!("Error fetching data in database");
+            return Json(empty);
+        }
     }
 }
 
