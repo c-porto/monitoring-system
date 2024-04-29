@@ -12,7 +12,31 @@ docker compose up --build
 *** API Description
 
 The server exposes three routes in it's address (by default -> 0.0.0.0:42068):
-    - "/api" : GET -> This route basically sends as response a Json payload with the server version.
+    - "/" : GET -> This route basically sends as response a Json payload with the server version.
     - "/api/post_ms" : POST -> This route receives a Json payload with the samples from ESP32.
     - "/api/get_samples" : GET -> This route sends all samples stored in the database.
 
+** Data analysis 
+
+*** Dependencies 
+
+To get the dependencies necessary to use the python script is necessary to have pip installed 
+and, in the data analysis folder, run the following command:
+
+#+begin_src bash
+pip install -r requirements.txt 
+#+end_src
+
+*** Usage 
+
+To use it is simply run:
+
+#+begin_src bash
+python3 main.py
+#+end_src
+
+To understand the usage of the CLI simply run:  
+
+#+begin_src bash
+python3 main.py -h
+#+end_src
