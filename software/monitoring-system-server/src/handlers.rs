@@ -119,16 +119,10 @@ pub async fn get_api_ref() -> Json<ApiRef> {
     println!("API_REFERENCE endpoint hit");
 
     let api_version = ApiRef {
-        version: "v0.1.0".to_string(),
-        name: "Reference API".to_string(),
-        project: "monitoring-system".to_string(),
+        version: "v0.2.0".into(),
+        name: "Reference API".into(),
+        project: "monitoring-system".into(),
     };
 
     Json(api_version)
-}
-
-pub async fn get_measuring_handler() -> &'static str {
-    println!("Get measure endpoint hit");
-
-    "Please use this endpoint to post measuments"
 }

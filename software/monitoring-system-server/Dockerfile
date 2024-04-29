@@ -1,21 +1,20 @@
-FROM rust:buster AS base
+FROM rust:1.77-alpine as builder
+
+RUN apk add musl-dev openssl-dev openssl-libs-static
 
 WORKDIR /server
-RUN cargo init
-COPY Cargo.toml /server/Cargo.toml
-RUN cargo fetch
-COPY . /server
 
-FROM base AS builder
+COPY . .
 
-RUN cargo build --release
+RUN cargo build --target x86_64-unknown-linux-musl --release
 
-FROM debian:buster 
+# Create a new stage with a minimal image
+FROM scratch
+
+# Copying the executable from previous stage
+COPY --from=builder /server/target/x86_64-unknown-linux-musl/release/monitoring-system-server /server
+
+# Entrypoint
+CMD ["/server"]
 
 EXPOSE 42068
-
-COPY --from=builder /server/migrations/ /migrations
-COPY --from=builder /server/target/release/monitoring-system-server /server
-COPY --from=builder /server/.env /.env
-
-CMD [ "/server" ]
