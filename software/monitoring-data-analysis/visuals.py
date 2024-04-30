@@ -4,14 +4,12 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 from stats import Metrics, prepare_samples_for_plotting
-from req import get_measurements_data 
 
 VISUALS_REFRESH_PERIOD_SEC = 500
 
 def plot_sample_dist(samples: dict[Metrics, list]):
     temp = np.array(samples[Metrics.TEMP])
     hm = np.array(samples[Metrics.HM])
-    air = np.array(samples[Metrics.AIR])
     uv = np.array(samples[Metrics.UV])
 
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
@@ -19,7 +17,6 @@ def plot_sample_dist(samples: dict[Metrics, list]):
     sb_plot_1 = axs[0,0]
     sb_plot_2 = axs[0,1]
     sb_plot_3 = axs[1,0]
-    sb_plot_4 = axs[1,1]
 
     sb_plot_1.hist(temp, bins='auto', color='crimson', edgecolor='k')
     sb_plot_1.set_xlabel('Temperature (°C)')
@@ -42,13 +39,6 @@ def plot_sample_dist(samples: dict[Metrics, list]):
     sb_plot_3.tick_params(axis='x', rotation=45)  
     sb_plot_3.grid(True, color='gray', zorder=0)
 
-    sb_plot_4.hist(air, bins='auto', color='palegreen', edgecolor='k')
-    sb_plot_4.set_xlabel('CO2 Irradiance (ppm)')
-    sb_plot_4.set_ylabel('Frequency')
-    sb_plot_4.set_title('CO2 Irradiance Distribution')
-    sb_plot_4.tick_params(axis='x', rotation=45)    
-    sb_plot_4.grid(True, color='gray', zorder=0)
-
     plt.tight_layout()
 
     return fig
@@ -60,7 +50,6 @@ def plot_sample_graph(samples: dict[Metrics, list]):
 
     temp = np.array(samples[Metrics.TEMP])
     hm = np.array(samples[Metrics.HM])
-    air = np.array(samples[Metrics.AIR])
     uv = np.array(samples[Metrics.UV])
 
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
@@ -68,7 +57,6 @@ def plot_sample_graph(samples: dict[Metrics, list]):
     sb_plot_1 = axs[0,0]
     sb_plot_2 = axs[0,1]
     sb_plot_3 = axs[1,0]
-    sb_plot_4 = axs[1,1]
 
     sb_plot_1.plot(n_samples, temp, color='crimson')
     sb_plot_1.set_xlabel('Samples')
@@ -90,13 +78,6 @@ def plot_sample_graph(samples: dict[Metrics, list]):
     sb_plot_3.set_title('Ultraviolet Irradiance over time')
     sb_plot_3.tick_params(axis='x', rotation=45)  
     sb_plot_3.grid(True, color='gray', zorder=0)
-
-    sb_plot_4.plot(n_samples, air, color='palegreen')
-    sb_plot_4.set_xlabel('Samples')
-    sb_plot_4.set_ylabel('CO2 Irradiance (ppm)')
-    sb_plot_4.set_title('CO2 Irradiance over time')
-    sb_plot_4.tick_params(axis='x', rotation=45)    
-    sb_plot_4.grid(True, color='gray', zorder=0)
 
     plt.tight_layout()
 
