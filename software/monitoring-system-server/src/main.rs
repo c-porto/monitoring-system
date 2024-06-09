@@ -1,6 +1,6 @@
 use anyhow::Result;
 use axum::{extract::Extension, Router};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use std::net::SocketAddr;
 
 mod handlers;
@@ -8,47 +8,22 @@ mod router;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let env_db = std::env::var("DATABASE_URL");
+    let port = std::env::var("DB_PORT").unwrap();
+    let pswr = std::env::var("DB_PASS").unwrap();
+    let db_name = std::env::var("DB_NAME").unwrap();
+    let host = std::env::var("INSTANCE_HOST").unwrap();
+    let user = std::env::var("DB_USER").unwrap();
 
-    let db_url: String;
-
-    match env_db {
-        Ok(url) => db_url = url,
-        Err(_err) => {
-            println!("DB URL was not set in enviroment variables");
-            std::process::exit(1);
-        }
-    }
-
-    let std_pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect(db_url.as_str())
-        .await?;
-
-    let db_exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS (
-    SELECT 1 
-    FROM pg_database 
-    WHERE datname = $1
-)",
-    )
-    .bind("ms")
-    .fetch_one(&std_pool)
-    .await?;
-
-    if !db_exists {
-        sqlx::query("CREATE DATABASE ms")
-            .execute(&std_pool)
-            .await?;
-    }
-
-    std_pool.close().await;
-
-    let new_db_url = db_url + "/ms";
+    let conn_opt = PgConnectOptions::new()
+        .host(host.as_str())
+        .port(port.parse::<u16>().unwrap())
+        .password(pswr.as_str())
+        .database(db_name.as_str())
+        .username(user.as_str());
 
     let pool = PgPoolOptions::new()
         .max_connections(10)
-        .connect(new_db_url.as_str())
+        .connect_with(conn_opt)
         .await?;
 
     sqlx::migrate!("./migrations").run(&pool).await?;
@@ -65,8 +40,6 @@ async fn main() -> Result<()> {
     //      tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     //   }
     //});
-
-    println!("Listening to port 42068");
 
     axum::Server::bind(&addr)
         .serve(routes_all.into_make_service())

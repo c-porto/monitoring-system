@@ -12,11 +12,11 @@ def plot_sample_dist(samples: dict[Metrics, list]):
     hm = np.array(samples[Metrics.HM])
     uv = np.array(samples[Metrics.UV])
 
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+    fig, axs = plt.subplots(1, 3, figsize=(12, 8))
 
-    sb_plot_1 = axs[0,0]
-    sb_plot_2 = axs[0,1]
-    sb_plot_3 = axs[1,0]
+    sb_plot_1 = axs[0]
+    sb_plot_2 = axs[1]
+    sb_plot_3 = axs[2]
 
     sb_plot_1.hist(temp, bins='auto', color='crimson', edgecolor='k')
     sb_plot_1.set_xlabel('Temperature (°C)')
@@ -52,11 +52,11 @@ def plot_sample_graph(samples: dict[Metrics, list]):
     hm = np.array(samples[Metrics.HM])
     uv = np.array(samples[Metrics.UV])
 
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+    fig, axs = plt.subplots(1, 3, figsize=(12, 8))
 
-    sb_plot_1 = axs[0,0]
-    sb_plot_2 = axs[0,1]
-    sb_plot_3 = axs[1,0]
+    sb_plot_1 = axs[0]
+    sb_plot_2 = axs[1]
+    sb_plot_3 = axs[2]
 
     sb_plot_1.plot(n_samples, temp, color='crimson')
     sb_plot_1.set_xlabel('Samples')
