@@ -26,7 +26,7 @@ def setup_jobs(display_flags: list[bool], endpoints: list[str]):
     stats_thread.start()
 
     if any(display_flags):
-        visuals_display(endpoints[0], display_flags)
+        visuals_display(endpoints[1], display_flags)
 
 def monitoring_system_cli():
     cli_parser = argparse.ArgumentParser(description="Monitoring System CLI data visualization")
